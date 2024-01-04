@@ -1,0 +1,7 @@
+# ninja log v5
+2	900	7260418798467350	CMakeFiles/GenIITeamBuilder.dir/main.cpp.obj	c4ebae526d01623d
+900	995	7260418799404839	GenIITeamBuilder.exe	9ee66880bbd7d572
+1	255	7260421929343922	build.ninja	a0e20a796a89c30d
+0	7	0	clean	f1c0810b4f0350db
+2	895	7260422298805788	CMakeFiles/GenIITeamBuilder.dir/main.cpp.obj	c4ebae526d01623d
+895	989	7260422299713360	GenIITeamBuilder.exe	9ee66880bbd7d572

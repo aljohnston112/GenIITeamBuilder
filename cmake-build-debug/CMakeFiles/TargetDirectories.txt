@@ -1,0 +1,3 @@
+C:/Users/aljoh/CLionProjects/GenIITeamBuilder/cmake-build-debug/CMakeFiles/GenIITeamBuilder.dir
+C:/Users/aljoh/CLionProjects/GenIITeamBuilder/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/aljoh/CLionProjects/GenIITeamBuilder/cmake-build-debug/CMakeFiles/rebuild_cache.dir
