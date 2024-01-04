@@ -1,3 +1,5 @@
 /cmake-build-debug/
 /cmake-build-release/
+/cmake-build-debug-gcc/
+/cmake-build-release-gcc/
 /.idea/

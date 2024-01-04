@@ -3,8 +3,14 @@ project(GenIITeamBuilder)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(${PROJECT_NAME} main.cpp
-        MyHandler.h)
+add_executable(
+        ${PROJECT_NAME}
+        src/main.cpp
+        src/MyHandler.h
+        src/Timer.h
+        src/PokemonInformation.h
+        src/PokemonType.h
+)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
    add_compile_options(-O0 -fno-inline)
