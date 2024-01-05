@@ -20,7 +20,7 @@ void logFunctionTime(
         const std::string& messageHeader
 ){
     auto duration = timeFunction<>(function);
-    std::cout << messageHeader << duration.count() << std::endl;
+    std::cout << messageHeader << duration.count() << "ms" << std::endl;
 }
 
 #endif //GENIITEAMBUILDER_TIMER_H

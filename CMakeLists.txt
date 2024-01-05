@@ -15,6 +15,9 @@ add_executable(
         src/data_class/Category.h
         src/ThreadPool.h
         src/ThreadPool.cpp
+        src/PokemonDataSource.h
+        src/BattleField.h
+        src/PokemonDataSource.cpp
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
