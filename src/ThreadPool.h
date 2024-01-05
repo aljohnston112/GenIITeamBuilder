@@ -7,28 +7,35 @@
 #include <functional>
 #include <future>
 
-template<typename F>
+namespace BattleConfig{
+    using BattleFunction = std::function<void(void)>;
+}
+
+using namespace BattleConfig;
+
 class ThreadPool {
 
-    const unsigned int numThreads = std::thread::hardware_concurrency();
-    std::vector<std::jthread> threads{numThreads};
-    std::mutex mutex;
-    std::queue<F> tasks;
-    std::condition_variable work_condition;
+    std::vector<std::jthread> threads{std::thread::hardware_concurrency()};
 
-    std::condition_variable stop_condition;
+    std::mutex mutex;
+    std::queue<BattleFunction> tasks;
+
+    std::condition_variable work_condition;
     bool stop = false;
 
 public:
     ThreadPool() {
-        for (size_t i = 0; i < numThreads; ++i) {
+        for (size_t i = 0; i < threads.size(); ++i) {
             threads.emplace_back([this] {
                 while (true) {
-                    F task;
-
+                    BattleFunction task;
                     {
                         std::unique_lock<std::mutex> lock(mutex);
-                        work_condition.wait(lock, [this] { return stop && tasks.empty(); });
+                        work_condition.wait(
+                                lock, [this] {
+                                    return stop && tasks.empty();
+                                }
+                                );
 
                         if (tasks.empty()) {
                             return;
@@ -44,7 +51,7 @@ public:
         }
     };
 
-    void addTask(F function){
+    void addTask(BattleFunction function){
         std::unique_lock<std::mutex> lock(mutex);
         tasks.emplace(std::move(function));
         work_condition.notify_one();

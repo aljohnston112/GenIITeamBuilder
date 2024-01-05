@@ -46,6 +46,7 @@ void battle(
         std::promise<std::string> &promise
 ) {
     promise.set_value(attacker);
+    std::this_thread::sleep_for(std::chrono::seconds (1));
     // TODO
 }
 
@@ -59,11 +60,12 @@ int battleTime() {
     std::vector<std::future<std::string>> battleFutures;
     std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
 
-    ThreadPool<std::function<void(void)>> threadPool;
+    ThreadPool threadPool;
 
     logFunctionTime(
             [&pokemonNames, &battleFutures, &battlePromises, &threadPool] {
                 for (const std::string &attackingPokemon: pokemonNames) {
+                    int i = 0;
                     for (const std::string &defendingPokemon: pokemonNames) {
                         auto battlePromise = std::make_shared<std::promise<std::string>>();
                         battleFutures.emplace_back(battlePromise->get_future());
@@ -76,13 +78,16 @@ int battleTime() {
                                             *battlePromise);
                                 }
                         );
+                        i++;
                     }
+                    std::cout << i << std::endl;
                 }
+
                 std::stringstream stringstream;
                 for (auto &future: battleFutures) {
                     stringstream << (future.get().c_str()) << std::endl;
                 }
-                return stringstream.str();
+                std::cout << stringstream.str() << std::endl;
             },
             "Loop time: "
     );
