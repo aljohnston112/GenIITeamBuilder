@@ -3,13 +3,14 @@
 #include <sstream>
 #include <filesystem>
 #include <iostream>
+#include <future>
+#include <thread>
+#include <queue>
 
 #include "rapidjson/document.h"
 #include "MyHandler.h"
 #include "Timer.h"
-#include "PokemonType.h"
-#include "PokemonInformation.h"
-
+#include "ThreadPool.h"
 
 using namespace rapidjson;
 
@@ -31,63 +32,77 @@ auto read_all_pokemon() {
     return buffer;
 }
 
-PokemonInformation extractPokemonInformation(const auto& pokemonInformation) {
-    auto id = pokemonInformation["id"].GetInt();
-    auto name = pokemonInformation["name"].GetString();
-    auto pounds = pokemonInformation["pounds"].GetDouble();
-    auto typeListJSON = pokemonInformation["pokemon_types"].GetArray();
-    std::vector<PokemonType> types;
-    for (auto& typeValue : typeListJSON){
-        types.emplace_back(convert_to_pokemon_type(typeValue.GetString()));
+std::vector<std::string> extractAllPokemonNames(const auto &document) {
+    std::vector<std::string> pokemonNames{251};
+    for (auto &m: document.GetObject()) {
+        pokemonNames.emplace_back(m.name.GetString());
     }
-    return PokemonInformation(name, types, id, pounds);
-
+    return pokemonNames;
 }
 
-void extractAllStats(const auto& allStats) {}
+void battle(
+        std::string attacker,
+        std::string defender,
+        std::promise<std::string> &promise
+) {
+    promise.set_value(attacker);
+    // TODO
+}
 
-void extractGenIIAttacks(const auto& genIIAttacks) {}
+int battleTime() {
+    auto allPokemonJSON = read_all_pokemon().str();
+    StringStream buffer(allPokemonJSON.c_str());
+    Document document;
+    document.ParseStream(buffer);
+    auto pokemonNames = extractAllPokemonNames(document);
 
-void extractGenIAttacks(const auto& genIAttacks) {}
+    std::vector<std::future<std::string>> battleFutures;
+    std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
 
-void extractTmHmAttacks(const auto& tmHmAttacks) {}
+    ThreadPool<std::function<void(void)>> threadPool;
 
-void extractMoveTutorAttacks(const auto& moveTutorAttacks) {}
-
-void extractEggMoves(const auto& eggMoves) {}
-
-void extractPreEvolutionAttacks(const auto& preEvolutionAttacks) {}
-
-void extractSpecialAttacks(const auto& specialAttacks) {}
-
-void extractPokemon(const auto& pokemon) {
-    extractPokemonInformation(pokemon["pokemon_information"]);
-    extractAllStats(pokemon["all_stats"]);
-    extractGenIIAttacks(pokemon["genII_level_to_attacks"]);
-    extractGenIAttacks(pokemon["genI_attacks"]);
-    extractTmHmAttacks(pokemon["tm_or_hm_to_attack"]);
-    extractMoveTutorAttacks(pokemon["move_tutor_attacks"]);
-    extractEggMoves(pokemon["egg_moves"]);
-    extractPreEvolutionAttacks(pokemon["pre_evolution_attacks"]);
-    extractSpecialAttacks(pokemon["special_attacks"]);
+    logFunctionTime(
+            [&pokemonNames, &battleFutures, &battlePromises, &threadPool] {
+                for (const std::string &attackingPokemon: pokemonNames) {
+                    for (const std::string &defendingPokemon: pokemonNames) {
+                        auto battlePromise = std::make_shared<std::promise<std::string>>();
+                        battleFutures.emplace_back(battlePromise->get_future());
+                        battlePromises.emplace_back(battlePromise);
+                        threadPool.addTask(
+                                [attackingPokemon, defendingPokemon, battlePromise] {
+                                    battle(
+                                            attackingPokemon,
+                                            defendingPokemon,
+                                            *battlePromise);
+                                }
+                        );
+                    }
+                }
+                std::stringstream stringstream;
+                for (auto &future: battleFutures) {
+                    stringstream << (future.get().c_str()) << std::endl;
+                }
+                return stringstream.str();
+            },
+            "Loop time: "
+    );
+    return 0;
 }
 
 int main() {
-    logFunctionTime<int>(
+//    auto num_threads = 12;
+//    std::vector<std::jthread> threads{12};
+//    for (int i = 0; i < num_threads; ++i) {
+//        threads.emplace_back(std::jthread());
+//    }
+
+
+    logFunctionTime (
             [] {
-                auto allPokemonJSON = read_all_pokemon().str();
-                StringStream buffer(allPokemonJSON.c_str());
-
-                Document document;
-                document.ParseStream(buffer);
-                for (auto& m : document.GetObject()) {
-                    GenericObject pokemonInformation = m.value.GetObject();
-                    extractPokemon(pokemonInformation);
-                }
-
-                return 0;
+                battleTime();
+                return "";
             },
-            "Program run time: "
+                    "Program run time: "
     );
 
     return 0;

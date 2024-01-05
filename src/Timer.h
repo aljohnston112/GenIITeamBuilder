@@ -6,7 +6,7 @@
 
 template <typename R>
 std::pair<std::chrono::milliseconds, R>  timeFunction(
-        const std::function<R(void)>& function
+        auto function
 ){
     auto start = std::chrono::high_resolution_clock::now();
     R returnValue = function();
@@ -15,12 +15,11 @@ std::pair<std::chrono::milliseconds, R>  timeFunction(
     return {duration, returnValue};
 }
 
-template <typename R>
-R logFunctionTime(
-        const std::function<R(void)>& function,
+auto logFunctionTime(
+        auto function,
         const std::string& messageHeader
 ){
-    auto result = timeFunction(function);
+    auto result = timeFunction<std::string>(function);
     auto duration = result.first;
     std::cout << messageHeader << duration.count() << std::endl;
     return result.second;

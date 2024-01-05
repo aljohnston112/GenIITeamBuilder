@@ -8,8 +8,11 @@ add_executable(
         src/main.cpp
         src/MyHandler.h
         src/Timer.h
-        src/PokemonInformation.h
-        src/PokemonType.h
+        src/data_class/PokemonType.h
+        src/data_class/StatModifiers.h
+        src/data_class/Stat.h
+        src/data_class/Category.h
+        src/ThreadPool.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
