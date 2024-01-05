@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <iostream>
 #include <future>
-#include <thread>
 #include <queue>
 
 #include "rapidjson/document.h"
@@ -33,9 +32,10 @@ auto read_all_pokemon() {
 }
 
 std::vector<std::string> extractAllPokemonNames(const auto &document) {
-    std::vector<std::string> pokemonNames{251};
+    std::vector<std::string> pokemonNames{};
+    pokemonNames.reserve(251);
     for (auto &m: document.GetObject()) {
-        pokemonNames.emplace_back(m.name.GetString());
+        pokemonNames.emplace_back(m.value["pokemon_information"]["name"].GetString());
     }
     return pokemonNames;
 }
@@ -45,8 +45,7 @@ void battle(
         std::string defender,
         std::promise<std::string> &promise
 ) {
-    promise.set_value(attacker);
-    std::this_thread::sleep_for(std::chrono::seconds (1));
+    promise.set_value(defender);
     // TODO
 }
 
@@ -61,33 +60,30 @@ int battleTime() {
     std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
 
     ThreadPool threadPool;
+    std::vector<BattleFunction> functions;
+    functions.reserve(pokemonNames.size() * pokemonNames.size());
 
     logFunctionTime(
-            [&pokemonNames, &battleFutures, &battlePromises, &threadPool] {
+            [&pokemonNames, &battleFutures, &battlePromises, &functions, &threadPool] {
                 for (const std::string &attackingPokemon: pokemonNames) {
-                    int i = 0;
                     for (const std::string &defendingPokemon: pokemonNames) {
                         auto battlePromise = std::make_shared<std::promise<std::string>>();
                         battleFutures.emplace_back(battlePromise->get_future());
                         battlePromises.emplace_back(battlePromise);
-                        threadPool.addTask(
-                                [attackingPokemon, defendingPokemon, battlePromise] {
-                                    battle(
-                                            attackingPokemon,
-                                            defendingPokemon,
-                                            *battlePromise);
-                                }
+                        functions.emplace_back(
+                                std::move(
+                                        [&attackingPokemon, &defendingPokemon, battlePromise] {
+                                            battle(
+                                                    attackingPokemon,
+                                                    defendingPokemon,
+                                                    *battlePromise);
+                                        }
+                                )
                         );
-                        i++;
                     }
-                    std::cout << i << std::endl;
-                }
 
-                std::stringstream stringstream;
-                for (auto &future: battleFutures) {
-                    stringstream << (future.get().c_str()) << std::endl;
                 }
-                std::cout << stringstream.str() << std::endl;
+                threadPool.addTasks(functions);
             },
             "Loop time: "
     );
@@ -95,19 +91,12 @@ int battleTime() {
 }
 
 int main() {
-//    auto num_threads = 12;
-//    std::vector<std::jthread> threads{12};
-//    for (int i = 0; i < num_threads; ++i) {
-//        threads.emplace_back(std::jthread());
-//    }
-
-
-    logFunctionTime (
+    logFunctionTime(
             [] {
                 battleTime();
                 return "";
             },
-                    "Program run time: "
+            "Program run time: "
     );
 
     return 0;

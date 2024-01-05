@@ -6,6 +6,7 @@
 #include <queue>
 #include <functional>
 #include <future>
+#include "Timer.h"
 
 namespace BattleConfig{
     using BattleFunction = std::function<void(void)>;
@@ -15,25 +16,26 @@ using namespace BattleConfig;
 
 class ThreadPool {
 
-    std::vector<std::jthread> threads{std::thread::hardware_concurrency()};
+    const static unsigned int numThreads;
+    std::vector<std::jthread> threads{};
 
     std::mutex mutex;
     std::queue<BattleFunction> tasks;
 
-    std::condition_variable work_condition;
+    std::condition_variable task_condition;
     bool stop = false;
 
 public:
     ThreadPool() {
-        for (size_t i = 0; i < threads.size(); ++i) {
+        for (size_t i = 0; i < numThreads; ++i) {
             threads.emplace_back([this] {
                 while (true) {
                     BattleFunction task;
                     {
                         std::unique_lock<std::mutex> lock(mutex);
-                        work_condition.wait(
+                        task_condition.wait(
                                 lock, [this] {
-                                    return stop && tasks.empty();
+                                    return stop || !tasks.empty();
                                 }
                                 );
 
@@ -51,10 +53,14 @@ public:
         }
     };
 
-    void addTask(BattleFunction function){
-        std::unique_lock<std::mutex> lock(mutex);
-        tasks.emplace(std::move(function));
-        work_condition.notify_one();
+    void addTasks(const std::vector<BattleFunction>& functions){
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            for(const BattleFunction& function: functions) {
+                tasks.emplace(function);
+            }
+        }
+        task_condition.notify_one();
     }
 
     ~ThreadPool() {
@@ -62,7 +68,7 @@ public:
             std::unique_lock<std::mutex> lock(mutex);
             stop = true;
         }
-        work_condition.notify_all();
+        task_condition.notify_all();
         for (std::jthread &thread : threads) {
             thread.join();
         }

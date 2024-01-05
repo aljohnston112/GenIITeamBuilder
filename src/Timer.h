@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <functional>
+#include <iostream>
 
 std::chrono::milliseconds  timeFunction(
         auto function

@@ -3,6 +3,7 @@ project(GenIITeamBuilder)
 
 set(CMAKE_CXX_STANDARD 23)
 
+
 add_executable(
         ${PROJECT_NAME}
         src/main.cpp
@@ -13,10 +14,11 @@ add_executable(
         src/data_class/Stat.h
         src/data_class/Category.h
         src/ThreadPool.h
+        src/ThreadPool.cpp
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-   add_compile_options(-O0 -fno-inline)
+   add_compile_options(-O0 -fno-inline -g)
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE )
