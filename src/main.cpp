@@ -3,6 +3,7 @@
 #include "BattleField.h"
 
 int main() {
+    PokemonDataSource::initializeDocument();
     BattleField battleField;
     logFunctionTime(
             [&battleField] {

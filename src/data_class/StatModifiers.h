@@ -3,20 +3,30 @@
 
 class StatModifiers {
 public:
-    const float attackModifier;
-    const float specialAttackModifier;
-    const float defenseModifier;
-    const float specialDefenseModifier;
-    const float speedModifier;
-    const float accuracyModifier;
-    const float evasionModifier;
+    const double attackModifier;
+    const double specialAttackModifier;
+    const double defenseModifier;
+    const double specialDefenseModifier;
+    const double speedModifier;
+    const double accuracyModifier;
+    const double evasionModifier;
 
-    StatModifiers(float attackMod, float specialAttackMod, float defenseMod,
-                  float specialDefenseMod, float speedMod, float accuracyMod,
-                  float evasionMod) :
-            attackModifier(attackMod), specialAttackModifier(specialAttackMod),
-            defenseModifier(defenseMod), specialDefenseModifier(specialDefenseMod),
-            speedModifier(speedMod), accuracyModifier(accuracyMod), evasionModifier(evasionMod) {}
+    StatModifiers(
+            double attackMod,
+            double specialAttackMod,
+            double defenseMod,
+            double specialDefenseMod,
+            double speedMod,
+            double accuracyMod,
+            double evasionMod
+    ) :
+            attackModifier(attackMod),
+            specialAttackModifier(specialAttackMod),
+            defenseModifier(defenseMod),
+            specialDefenseModifier(specialDefenseMod),
+            speedModifier(speedMod),
+            accuracyModifier(accuracyMod),
+            evasionModifier(evasionMod) {}
 };
 
 

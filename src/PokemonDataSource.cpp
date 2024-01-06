@@ -1,3 +1,4 @@
+#include "rapidjson/document.h"
 #include "PokemonDataSource.h"
 
-const std::string PokemonDataSource::ALL_POKEMON_FILE = "data/all_pokemon.json";
+rapidjson::Document PokemonDataSource::document;

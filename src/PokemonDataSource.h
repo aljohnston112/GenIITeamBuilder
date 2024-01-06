@@ -12,9 +12,10 @@ using namespace rapidjson;
 class PokemonDataSource {
 
 private:
-    static const std::string ALL_POKEMON_FILE;
+    static constexpr char ALL_POKEMON_FILE[] = "data/all_pokemon.json";
+    static Document document;
 
-    static std::stringstream read_all_pokemon() {
+    static std::stringstream readAllPokemonFile() {
         std::stringstream buffer;
         auto allPokemonFile = ALL_POKEMON_FILE;
         std::ifstream file(allPokemonFile);
@@ -29,17 +30,25 @@ private:
     }
 
 public:
-    static std::vector<std::string> getAllPokemonNames() {
-        std::string allPokemonJSON = read_all_pokemon().str();
+
+    static void initializeDocument(){
+        std::string allPokemonJSON = readAllPokemonFile().str();
         StringStream buffer(allPokemonJSON.c_str());
-        Document document;
         document.ParseStream(buffer);
+    }
+
+    static std::vector<std::string> getAllPokemonNames() {
         std::vector<std::string> pokemonNames{};
         pokemonNames.reserve(251);
         for (auto &m: document.GetObject()) {
-            pokemonNames.emplace_back(m.value["pokemon_information"]["name"].GetString());
+            pokemonNames.emplace_back(m.name.GetString());
         }
         return pokemonNames;
+    }
+
+    static auto& getPokemonObjectByIndex(const std::string& id){
+        auto pokemon = document.FindMember(id.c_str());
+        return pokemon->value;
     }
 
 };

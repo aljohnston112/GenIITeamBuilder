@@ -17,6 +17,7 @@ add_executable(
         src/ThreadPool.cpp
         src/PokemonDataSource.h
         src/BattleField.h
+        src/data_class/PokemonState.h
         src/PokemonDataSource.cpp
 )
 
