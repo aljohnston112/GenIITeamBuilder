@@ -5,10 +5,13 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <iostream>
 #include "rapidjson/document.h"
 #include "data_class/PokemonType.h"
 #include "data_class/PokemonInformation.h"
 #include "data_class/AllStats.h"
+#include "data_class/Attack.h"
+#include "data_class/Pokemon.h"
 
 using namespace rapidjson;
 
@@ -17,6 +20,7 @@ class PokemonDataSource {
 private:
     static constexpr char ALL_POKEMON_FILE[] = "data/all_pokemon.json";
     static Document document;
+    static std::vector<Pokemon> ALL_POKEMON;
 
     static std::stringstream readAllPokemonFile() {
         std::stringstream buffer;
@@ -47,12 +51,12 @@ private:
 
     static Stats extractStats(const auto &stats) {
         return Stats(
-        stats["health"].GetInt(),
-        stats["attack"].GetInt(),
-        stats["defense"].GetInt(),
-        stats["special_attack"].GetInt(),
-        stats["special_defense"].GetInt(),
-        stats["speed"].GetInt()
+                stats["health"].GetInt(),
+                stats["attack"].GetInt(),
+                stats["defense"].GetInt(),
+                stats["special_attack"].GetInt(),
+                stats["special_defense"].GetInt(),
+                stats["speed"].GetInt()
         );
     }
 
@@ -76,46 +80,107 @@ private:
         );
     }
 
-    static void extractGenIIAttacks(const auto &genIIAttacks) {}
-
-    static void extractGenIAttacks(const auto &genIAttacks) {}
-
-    static void extractTmHmAttacks(const auto &tmHmAttacks) {}
-
-    static void extractMoveTutorAttacks(const auto &moveTutorAttacks) {}
-
-    static void extractEggMoves(const auto &eggMoves) {}
-
-    static void extractPreEvolutionAttacks(const auto &preEvolutionAttacks) {}
-
-    static void extractSpecialAttacks(const auto &specialAttacks) {}
-
-    static void extractPokemon(const auto &pokemon) {
-        extractPokemonInformation(pokemon["pokemon_information"]);
-        extractAllStats(pokemon["all_stats"]);
-        extractGenIIAttacks(pokemon["genII_level_to_attacks"]);
-        extractGenIAttacks(pokemon["genI_attacks"]);
-        extractTmHmAttacks(pokemon["tm_or_hm_to_attack"]);
-        extractMoveTutorAttacks(pokemon["move_tutor_attacks"]);
-        extractEggMoves(pokemon["egg_moves"]);
-        extractPreEvolutionAttacks(pokemon["pre_evolution_attacks"]);
-        extractSpecialAttacks(pokemon["special_attacks"]);
+    static Attack getAttack(
+            auto &attack
+    ) {
+        return Attack(
+                attack["name"].GetString(),
+                convert_to_pokemon_type(attack["pokemon_type"].GetString()),
+                convertToAttackCategory(attack["category"].GetString()),
+                attack["power"].GetInt(),
+                attack["accuracy"].GetInt(),
+                attack["effect_percent"].GetInt()
+        );
     }
 
-    static void parseData() {
-        for (auto &m: document.GetObject()) {
-            GenericObject pokemonInformation = m.value.GetObject();
-            extractPokemon(pokemonInformation);
+    static void addAttacks(
+            int level,
+            const auto &attackArray,
+            std::unordered_map<int, std::vector<Attack>> &attacks
+    ) {
+        for (auto &attack: attackArray) {
+            attacks[level].emplace_back(getAttack(attack));
         }
+    }
+
+    static void extractGenIIAttacks(
+            const auto &genIIAttacks,
+            std::unordered_map<int, std::vector<Attack>> &attacks
+    ) {
+        for (auto &m: genIIAttacks.GetObject()) {
+            int level = std::stoi(m.name.GetString());
+            auto attackArray = m.value.GetArray();
+            addAttacks(level, attackArray, attacks);
+        }
+    }
+
+    static void extractAttacksFromList(
+            const auto &attackList,
+            std::unordered_map<int, std::vector<Attack>> &attacks
+    ) {
+        if (attackList.IsArray()) {
+            for (auto &m: attackList.GetArray()) {
+                auto attackObject = m.GetObject();
+                attacks[-2].emplace_back(getAttack(attackObject));
+            }
+        } else {
+            if (attackList.GetType() != 0) {
+                throw std::runtime_error("");
+            }
+        }
+        printf("");
+    }
+
+    static void extractTmHmAttacks(
+            const auto &tmHmAttacks,
+            std::unordered_map<int, std::vector<Attack>> &attacks
+    ) {
+        if (tmHmAttacks.IsObject()) {
+            for (auto &m: tmHmAttacks.GetObject()) {
+                auto attackObject = m.value.GetObject();
+                attacks[-1].emplace_back(getAttack(attackObject));
+            }
+        } else {
+            if (tmHmAttacks.GetType() != 0) {
+                throw std::runtime_error("");
+            }
+        }
+    }
+
+    static Pokemon extractPokemon(const auto &pokemon) {
+        PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
+        AllStats allStats = extractAllStats(pokemon["all_stats"]);
+
+        std::unordered_map<int, std::vector<Attack>> attacks;
+        extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
+        extractAttacksFromList(pokemon["genI_attacks"], attacks);
+        extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
+        extractAttacksFromList(pokemon["move_tutor_attacks"], attacks);
+        extractAttacksFromList(pokemon["egg_moves"], attacks);
+        extractAttacksFromList(pokemon["pre_evolution_attacks"], attacks);
+        extractAttacksFromList(pokemon["special_attacks"], attacks);
+
+        return {
+                pokemonInformation,
+                allStats,
+                attacks
+        };
     }
 
 public:
 
-    static void initialize() {
-        std::string allPokemonJSON = readAllPokemonFile().str();
-        StringStream buffer(allPokemonJSON.c_str());
-        document.ParseStream(buffer);
-        parseData();
+    static std::vector<Pokemon> getAllPokemon() {
+        if(ALL_POKEMON.empty()) {
+            std::string allPokemonJSON = readAllPokemonFile().str();
+            StringStream buffer(allPokemonJSON.c_str());
+            document.ParseStream(buffer);
+            for (auto &m: document.GetObject()) {
+                ALL_POKEMON.emplace_back(
+                        extractPokemon(m.value.GetObject())
+                );
+            }
+        }
+        return ALL_POKEMON;
     }
 
     static std::vector<std::string> getAllPokemonNames() {
@@ -125,11 +190,6 @@ public:
             pokemonNames.emplace_back(m.name.GetString());
         }
         return pokemonNames;
-    }
-
-    static auto &getPokemonObjectByIndex(const std::string &id) {
-        auto pokemon = document.FindMember(id.c_str());
-        return pokemon->value;
     }
 
 };

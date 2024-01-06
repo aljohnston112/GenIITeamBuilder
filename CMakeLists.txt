@@ -24,7 +24,9 @@ add_executable(
         src/data_class/BaseStats.h
         src/data_class/Stats.h
         src/data_class/AllStats.h
-        src/data_class/AllStats.h
+        src/data_class/Pokemon.h
+        src/data_class/Attack.h
+        src/data_class/Category.cpp
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

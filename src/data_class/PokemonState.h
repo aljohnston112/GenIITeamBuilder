@@ -8,77 +8,77 @@
 class PokemonState {
 private:
     const bool buffed;
-    int attack_stat;
-    int defense_stat;
-    int special_attack;
-    int special_defense;
-    int speed;
-    int max_hp;
-    int current_hp;
+    double attackStat;
+    double defenseStat;
+    double specialAttack;
+    double specialDefense;
+    double speed;
+    double maxHp;
+    double currentHp;
 
 public:
     PokemonState(
-            auto& pokemonJSON,
-            StatModifiers &stat_modifiers,
+            const Pokemon& pokemon,
+            const StatModifiers &stat_modifiers,
             bool buffed,
-            bool min_stats
+            bool minStats
     ) : buffed(buffed) {
-        if (min_stats) {
-            current_hp = pokemonJSON["all_stats"]["level_50_min_stats"]["health"].GetInt();
-            max_hp = pokemonJSON["all_stats"]["level_50_min_stats"]["health"].GetInt();
-            attack_stat = pokemonJSON["all_stats"]["level_50_min_stats"]["attack"].GetInt() * stat_modifiers.attackModifier;
-            defense_stat = pokemonJSON["all_stats"]["level_50_min_stats"]["defense"].GetInt() * stat_modifiers.defenseModifier;
-            special_attack = pokemonJSON["all_stats"]["level_50_min_stats"]["special_attack"].GetInt() * stat_modifiers.specialAttackModifier;
-            special_defense = pokemonJSON["all_stats"]["level_50_min_stats"]["special_defense"].GetInt() * stat_modifiers.specialDefenseModifier;
-            speed = pokemonJSON["all_stats"]["level_50_min_stats"]["speed"].GetInt() * stat_modifiers.speedModifier;
+        if (minStats) {
+            currentHp = pokemon.allStats.level_50_min_stats.health;
+            maxHp = pokemon.allStats.level_50_min_stats.health;
+            attackStat = pokemon.allStats.level_50_min_stats.attack * stat_modifiers.attackModifier;
+            defenseStat = pokemon.allStats.level_50_min_stats.defense * stat_modifiers.defenseModifier;
+            specialAttack = pokemon.allStats.level_50_min_stats.special_attack * stat_modifiers.specialAttackModifier;
+            specialDefense = pokemon.allStats.level_50_min_stats.special_defense * stat_modifiers.specialDefenseModifier;
+            speed = pokemon.allStats.level_50_min_stats.speed * stat_modifiers.speedModifier;
         } else {
-            current_hp = pokemonJSON["all_stats"]["level_50_max_stats"]["health"].GetInt();
-            max_hp = pokemonJSON["all_stats"]["level_50_max_stats"]["health"].GetInt();
-            attack_stat = pokemonJSON["all_stats"]["level_50_max_stats"]["attack"].GetInt() * stat_modifiers.attackModifier;
-            defense_stat = pokemonJSON["all_stats"]["level_50_max_stats"]["defense"].GetInt() * stat_modifiers.defenseModifier;
-            special_attack = pokemonJSON["all_stats"]["level_50_max_stats"]["special_attack"].GetInt() * stat_modifiers.specialAttackModifier;
-            special_defense = pokemonJSON["all_stats"]["level_50_max_stats"]["special_defense"].GetInt() * stat_modifiers.specialDefenseModifier;
-            speed = pokemonJSON["all_stats"]["level_50_max_stats"]["speed"].GetInt() * stat_modifiers.speedModifier;
+            currentHp = pokemon.allStats.level_50_max_stats.health;
+            maxHp = pokemon.allStats.level_50_max_stats.health;
+            attackStat = pokemon.allStats.level_50_max_stats.attack * stat_modifiers.attackModifier;
+            defenseStat = pokemon.allStats.level_50_max_stats.defense * stat_modifiers.defenseModifier;
+            specialAttack = pokemon.allStats.level_50_max_stats.special_attack * stat_modifiers.specialAttackModifier;
+            specialDefense = pokemon.allStats.level_50_max_stats.special_defense * stat_modifiers.specialDefenseModifier;
+            speed = pokemon.allStats.level_50_max_stats.speed * stat_modifiers.speedModifier;
         }
     }
 
-    int get_max_hp() const {
-        return max_hp;
+    double get_max_hp() const {
+        return maxHp;
     }
-    void add_damage(int damage) {
-        current_hp -= damage;
+    void add_damage(double damage) {
+        currentHp -= damage;
     }
 
-    void add_health(int health) {
-        current_hp += health;
-        current_hp = std::min(current_hp, max_hp);
+    void add_health(double health) {
+        currentHp += health;
+        currentHp = std::min(currentHp, maxHp);
     }
 
     void restore() {
-        current_hp = max_hp;
+        currentHp = maxHp;
     }
 
     bool isBuffed() const {
         return buffed;
     }
 
-    int getAttackStat() const {
-        return attack_stat;
+    double getAttackStat() const {
+        return attackStat;
     }
 
-    int getDefenseStat() const {
-        return defense_stat;
+    double getDefenseStat() const {
+        return defenseStat;
     }
 
-    int getSpecialAttack() const {
-        return special_attack;
+    double getSpecialAttack() const {
+        return specialAttack;
     }
 
-    int getSpecialDefense() const {
-        return special_defense;
+    double getSpecialDefense() const {
+        return specialDefense;
     }
 
-    int getSpeed() const {
+    double getSpeed() const {
         return speed;
     }
 

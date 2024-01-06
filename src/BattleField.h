@@ -15,14 +15,14 @@ private:
     std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
     ThreadPool threadPool;
     std::vector<BattleFunction> functions;
-    std::vector<std::string> pokemonNames = PokemonDataSource::getAllPokemonNames();
+    std::vector<Pokemon> ALL_POKEMON = PokemonDataSource::getAllPokemon();
 
     static void battle(
-            const std::string &attacker,
-            const std::string &defender,
+            const Pokemon &attacker,
+            const Pokemon &defender,
             std::promise<std::string> &promise
     ) {
-        promise.set_value(defender);
+        promise.set_value(defender.pokemonInformation.name);
         // TODO
     }
 
@@ -58,21 +58,21 @@ public:
 
 
             functions.clear();
-            functions.reserve(pokemonNames.size() * pokemonNames.size());
+            functions.reserve(ALL_POKEMON.size() * ALL_POKEMON.size());
             logFunctionTime(
                     [this, &attackerStatModifiers, &defenderStatModifiers] {
-                        for (const std::string &attackingPokemonIndex: pokemonNames) {
+                        for (const Pokemon &attackingPokemon: ALL_POKEMON) {
                             PokemonState attackerState(
-                                    PokemonDataSource::getPokemonObjectByIndex(attackingPokemonIndex),
+                                    attackingPokemon,
                                     attackerStatModifiers,
                                     false,
                                     true
                             );
                             double attackerSpeedStat = attackerState.getSpeed();
 
-                            for (const std::string &defendingPokemonIndex: pokemonNames) {
+                            for (const Pokemon &defendingPokemon: ALL_POKEMON) {
                                 PokemonState defenderState(
-                                        PokemonDataSource::getPokemonObjectByIndex(defendingPokemonIndex),
+                                        defendingPokemon,
                                         defenderStatModifiers,
                                         true,
                                         false
@@ -84,11 +84,12 @@ public:
                                 battlePromises.emplace_back(battlePromise);
                                 functions.emplace_back(
                                         std::move(
-                                                [&attackingPokemonIndex, &defendingPokemonIndex, battlePromise] {
+                                                [&attackingPokemon, &defendingPokemon, battlePromise] {
                                                     battle(
-                                                            attackingPokemonIndex,
-                                                            defendingPokemonIndex,
-                                                            *battlePromise);
+                                                            attackingPokemon,
+                                                            defendingPokemon,
+                                                            *battlePromise
+                                                    );
                                                 }
                                         )
                                 );
