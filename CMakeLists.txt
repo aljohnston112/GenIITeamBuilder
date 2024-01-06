@@ -19,6 +19,12 @@ add_executable(
         src/BattleField.h
         src/data_class/PokemonState.h
         src/PokemonDataSource.cpp
+        src/data_class/PokemonInformation.h
+        src/PokemonType.cpp
+        src/data_class/BaseStats.h
+        src/data_class/Stats.h
+        src/data_class/AllStats.h
+        src/data_class/AllStats.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

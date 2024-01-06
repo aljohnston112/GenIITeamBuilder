@@ -11,13 +11,7 @@ enum class StatEnum {
     DEFENSE,
     SPECIAL_ATTACK,
     SPECIAL_DEFENSE,
-    SPEED,
-    NO_STAT
-};
-
-struct Stat {
-    StatEnum statType;
-    int value;
+    SPEED
 };
 
 std::unordered_map<std::string, StatEnum> STAT_DICT = {

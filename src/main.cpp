@@ -3,15 +3,17 @@
 #include "BattleField.h"
 
 int main() {
-    PokemonDataSource::initializeDocument();
-    BattleField battleField;
-    logFunctionTime(
-            [&battleField] {
-                battleField.battleTime();
-                return "";
-            },
-            "Program run time: "
-    );
+    PokemonDataSource::initialize();
 
-    return 0;
+
+//    BattleField battleField;
+//    logFunctionTime(
+//            [&battleField] {
+//                battleField.battleTime();
+//                return "";
+//            },
+//            "Program run time: "
+//    );
+//
+//    return 0;
 }
