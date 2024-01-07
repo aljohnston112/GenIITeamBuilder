@@ -9,12 +9,12 @@
 class Attack {
 
 public:
-    const std::string attackName;
-    const PokemonType pokemonType;
-    const Category category;
-    const int power;
-    const int accuracy;
-    const int effectPercent;
+    std::string name;
+    PokemonType pokemonType;
+    Category category;
+    int power;
+    int accuracy;
+    int effectPercent;
 
     Attack(
             std::string attackName,
@@ -23,12 +23,14 @@ public:
             int power,
             int accuracy,
             int effectPercent
-    ) : attackName(std::move(attackName)),
+    ) : name(std::move(attackName)),
         pokemonType(pokemonType),
         category(category),
         power(power),
         accuracy(accuracy),
         effectPercent(effectPercent) {}
+
+    Attack(const Attack& attack) = default;
 
 };
 

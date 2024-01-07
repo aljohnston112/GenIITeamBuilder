@@ -7,6 +7,7 @@
 
 class PokemonState {
 private:
+    const Pokemon pokemon;
     const bool buffed;
     double attackStat;
     double defenseStat;
@@ -22,7 +23,7 @@ public:
             const StatModifiers &stat_modifiers,
             bool buffed,
             bool minStats
-    ) : buffed(buffed) {
+    ) : pokemon(pokemon), buffed(buffed) {
         if (minStats) {
             currentHp = pokemon.allStats.level_50_min_stats.health;
             maxHp = pokemon.allStats.level_50_min_stats.health;
@@ -80,6 +81,10 @@ public:
 
     double getSpeed() const {
         return speed;
+    }
+
+    Pokemon getPokemon(){
+        return pokemon;
     }
 
 };

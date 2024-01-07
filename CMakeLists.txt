@@ -27,6 +27,7 @@ add_executable(
         src/data_class/Pokemon.h
         src/data_class/Attack.h
         src/data_class/Category.cpp
+        src/DamageCalculator.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

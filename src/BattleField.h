@@ -8,14 +8,23 @@
 #include "ThreadPool.h"
 #include "data_class/PokemonState.h"
 
+namespace battle_field {
+    const std::vector<double> MULTIPLIERS = {
+            0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00
+    };
+
+    const int NUMBER_OF_POKEMON = 251;
+    const size_t NUMBER_OF_BATTLES = NUMBER_OF_POKEMON * NUMBER_OF_POKEMON * MULTIPLIERS.size();
+}
+
 class BattleField {
 
 private:
-    std::vector<std::future<std::string>> battleFutures;
-    std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
     ThreadPool threadPool;
     std::vector<BattleFunction> functions;
     std::vector<Pokemon> ALL_POKEMON = PokemonDataSource::getAllPokemon();
+    std::vector<std::future<std::string>> battleFutures;
+    std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
 
     static void battle(
             const Pokemon &attacker,
@@ -23,7 +32,7 @@ private:
             std::promise<std::string> &promise
     ) {
         promise.set_value(defender.pokemonInformation.name);
-        // TODO
+        // TODO Battle logic
     }
 
 public:
@@ -31,11 +40,9 @@ public:
         // Modifiers
         // Stats: .25, .28, .33, .40, .50, .66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00
         // Accuracy and evasion: .33, .36, .43, .50, .66, .75, 1.00, 1.33, 1.66, 2.00, 2.33, 2.66, 3.00
-        std::vector<double> multipliers = {0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50,
-                                           4.00};
 
         double defenderStatMultiplier = 4.00;
-        for (double attackerStatMultiplier: multipliers) {
+        for (double attackerStatMultiplier: battle_field::MULTIPLIERS) {
             // TODO cache StatModifiers if speed is slow
             StatModifiers attackerStatModifiers(
                     attackerStatMultiplier,
@@ -55,7 +62,6 @@ public:
                     defenderStatMultiplier,
                     defenderStatMultiplier
             );
-
 
             functions.clear();
             functions.reserve(ALL_POKEMON.size() * ALL_POKEMON.size());
