@@ -96,16 +96,16 @@ private:
     static void addAttacks(
             int level,
             const auto &attackArray,
-            std::unordered_map<int, std::vector<Attack>> &attacks
+            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         for (auto &attack: attackArray) {
-            attacks[level].emplace_back(getAttack(attack));
+            (*attacks)[level].emplace_back(getAttack(attack));
         }
     }
 
     static void extractGenIIAttacks(
             const auto &genIIAttacks,
-            std::unordered_map<int, std::vector<Attack>> &attacks
+            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         for (auto &m: genIIAttacks.GetObject()) {
             int level = std::stoi(m.name.GetString());
@@ -116,12 +116,12 @@ private:
 
     static void extractAttacksFromList(
             const auto &attackList,
-            std::unordered_map<int, std::vector<Attack>> &attacks
+            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         if (attackList.IsArray()) {
             for (auto &m: attackList.GetArray()) {
                 auto attackObject = m.GetObject();
-                attacks[-2].emplace_back(getAttack(attackObject));
+                (*attacks)[-2].emplace_back(getAttack(attackObject));
             }
         } else {
             if (attackList.GetType() != 0) {
@@ -133,12 +133,12 @@ private:
 
     static void extractTmHmAttacks(
             const auto &tmHmAttacks,
-            std::unordered_map<int, std::vector<Attack>> &attacks
+            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         if (tmHmAttacks.IsObject()) {
             for (auto &m: tmHmAttacks.GetObject()) {
                 auto attackObject = m.value.GetObject();
-                attacks[-1].emplace_back(getAttack(attackObject));
+                (*attacks)[-1].emplace_back(getAttack(attackObject));
             }
         } else {
             if (tmHmAttacks.GetType() != 0) {
@@ -151,7 +151,8 @@ private:
         PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
         AllStats allStats = extractAllStats(pokemon["all_stats"]);
 
-        std::unordered_map<int, std::vector<Attack>> attacks;
+        std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> attacks =
+                std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
         extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
         extractAttacksFromList(pokemon["genI_attacks"], attacks);
         extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
@@ -170,7 +171,7 @@ private:
 public:
 
     static std::vector<Pokemon> getAllPokemon() {
-        if(ALL_POKEMON.empty()) {
+        if (ALL_POKEMON.empty()) {
             std::string allPokemonJSON = readAllPokemonFile().str();
             StringStream buffer(allPokemonJSON.c_str());
             document.ParseStream(buffer);
