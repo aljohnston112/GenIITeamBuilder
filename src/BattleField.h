@@ -15,6 +15,7 @@ namespace battle_field {
 
     const int NUMBER_OF_POKEMON = 251;
     const size_t NUMBER_OF_BATTLES = NUMBER_OF_POKEMON * NUMBER_OF_POKEMON * MULTIPLIERS.size();
+
 }
 
 class BattleField {
@@ -25,6 +26,8 @@ private:
     std::vector<Pokemon> ALL_POKEMON = PokemonDataSource::getAllPokemon();
     std::vector<std::future<std::string>> battleFutures;
     std::vector<std::shared_ptr<std::promise<std::string>>> battlePromises;
+    std::unordered_map<std::string, shared_ptr<PokemonState>> defenderPokemonStates;
+    std::unordered_map<std::string, shared_ptr<PokemonState>> attackerPokemonStates;
 
     static void battle(
             const Pokemon &attacker,
@@ -35,15 +38,58 @@ private:
         // TODO Battle logic
     }
 
+    shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers statModifiers) {
+        if (defenderPokemonStates.find(pokemon.pokemonInformation.name) == defenderPokemonStates.end()) {
+            defenderPokemonStates.insert(
+                    {
+                            pokemon.pokemonInformation.name,
+                            std::make_shared<PokemonState>(
+                                    PokemonState(
+                                            pokemon,
+                                            statModifiers,
+                                            true,
+                                            false
+                                    )
+                            )
+                    }
+            );
+        }
+        auto state = defenderPokemonStates.at(pokemon.pokemonInformation.name);
+        state->restore();
+        return state;
+    }
+
+    std::shared_ptr<PokemonState> getAttackerPokemonState(Pokemon &pokemon, StatModifiers statModifiers) {
+        if (attackerPokemonStates.find(pokemon.pokemonInformation.name) == attackerPokemonStates.end()) {
+            attackerPokemonStates.insert(
+                    {
+                            pokemon.pokemonInformation.name,
+                            std::make_shared<PokemonState>(
+                                    PokemonState(
+                                            pokemon,
+                                            statModifiers,
+                                            true,
+                                            false
+                                    )
+                            )
+                    }
+            );
+        }
+        auto state = attackerPokemonStates.at(pokemon.pokemonInformation.name);
+        state->restore();
+        return state;
+    }
+
 public:
     int battleTime() {
         // Modifiers
         // Stats: .25, .28, .33, .40, .50, .66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00
         // Accuracy and evasion: .33, .36, .43, .50, .66, .75, 1.00, 1.33, 1.66, 2.00, 2.33, 2.66, 3.00
 
+
+
         double defenderStatMultiplier = 4.00;
         for (double attackerStatMultiplier: battle_field::MULTIPLIERS) {
-            // TODO cache StatModifiers if speed is slow
             StatModifiers attackerStatModifiers(
                     attackerStatMultiplier,
                     attackerStatMultiplier,
@@ -67,23 +113,15 @@ public:
             functions.reserve(ALL_POKEMON.size() * ALL_POKEMON.size());
             logFunctionTime(
                     [this, &attackerStatModifiers, &defenderStatModifiers] {
-                        for (const Pokemon &attackingPokemon: ALL_POKEMON) {
-                            PokemonState attackerState(
-                                    attackingPokemon,
-                                    attackerStatModifiers,
-                                    false,
-                                    true
-                            );
-                            double attackerSpeedStat = attackerState.getSpeed();
+                        for (Pokemon &attackingPokemon: ALL_POKEMON) {
+                            auto attackerState = getAttackerPokemonState(attackingPokemon,
+                                                                                 attackerStatModifiers);
+                            double attackerSpeedStat = attackerState->getSpeed();
 
-                            for (const Pokemon &defendingPokemon: ALL_POKEMON) {
-                                PokemonState defenderState(
-                                        defendingPokemon,
-                                        defenderStatModifiers,
-                                        true,
-                                        false
-                                );
-                                double defenderSpeedStat = defenderState.getSpeed();
+                            for (Pokemon &defendingPokemon: ALL_POKEMON) {
+                                auto defenderState = getDefenderPokemonState(defendingPokemon,
+                                                                                     defenderStatModifiers);
+                                double defenderSpeedStat = defenderState->getSpeed();
 
                                 auto battlePromise = std::make_shared<std::promise<std::string>>();
                                 battleFutures.emplace_back(battlePromise->get_future());

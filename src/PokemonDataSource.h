@@ -151,8 +151,7 @@ private:
         PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
         AllStats allStats = extractAllStats(pokemon["all_stats"]);
 
-        std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> attacks =
-                std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
+        auto attacks = std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
         extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
         extractAttacksFromList(pokemon["genI_attacks"], attacks);
         extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);

@@ -9,12 +9,12 @@
 class Attack {
 
 public:
-    std::string name;
-    PokemonType pokemonType;
-    Category category;
-    int power;
-    int accuracy;
-    int effectPercent;
+    const std::string name;
+    const PokemonType pokemonType;
+    const Category category;
+    const int power;
+    const int accuracy;
+    const int effectPercent;
 
     Attack(
             std::string attackName,

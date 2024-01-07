@@ -19,11 +19,11 @@ private:
 
 public:
     PokemonState(
-            const Pokemon& pokemon,
-            const StatModifiers &stat_modifiers,
+            Pokemon& pokemon,
+            StatModifiers &stat_modifiers,
             bool buffed,
             bool minStats
-    ) : pokemon(pokemon), buffed(buffed) {
+    ) : pokemon(std::move(pokemon)), buffed(buffed) {
         if (minStats) {
             currentHp = pokemon.allStats.level_50_min_stats.health;
             maxHp = pokemon.allStats.level_50_min_stats.health;
