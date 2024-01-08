@@ -7,14 +7,15 @@
 #include "Category.h"
 
 class Attack {
+private:
+    std::string name;
+    PokemonType pokemonType;
+    Category category;
+    int power;
+    int accuracy;
+    int effectPercent;
 
 public:
-    const std::string name;
-    const PokemonType pokemonType;
-    const Category category;
-    const int power;
-    const int accuracy;
-    const int effectPercent;
 
     Attack(
             std::string attackName,
@@ -30,7 +31,12 @@ public:
         accuracy(accuracy),
         effectPercent(effectPercent) {}
 
-    Attack(const Attack& attack) = default;
+    std::string getName() const { return name; }
+    PokemonType getPokemonType() const { return pokemonType; }
+    Category getCategory() const { return category; }
+    int getPower() const { return power; }
+    int getAccuracy() const { return accuracy; }
+    int getEffectPercent() const { return effectPercent; }
 
 };
 

@@ -7,8 +7,6 @@
 
 class PokemonState {
 private:
-    const Pokemon pokemon;
-    const bool buffed;
     double attackStat;
     double defenseStat;
     double specialAttack;
@@ -18,6 +16,9 @@ private:
     double currentHp;
 
 public:
+    const Pokemon pokemon;
+    const bool buffed;
+
     PokemonState(
             Pokemon& pokemon,
             StatModifiers &stat_modifiers,

@@ -28,6 +28,9 @@ add_executable(
         src/data_class/Attack.h
         src/data_class/Category.cpp
         src/DamageCalculator.h
+        src/AttackUtil.h
+        src/DefenseMultipliers.h
+        src/TypeChartDataSource.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
