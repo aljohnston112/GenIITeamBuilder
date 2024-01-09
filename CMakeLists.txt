@@ -16,7 +16,7 @@ add_executable(
         src/ThreadPool.h
         src/ThreadPool.cpp
         src/PokemonDataSource.h
-        src/BattleField.h
+        src/BattleSimulator.h
         src/data_class/PokemonState.h
         src/PokemonDataSource.cpp
         src/data_class/PokemonInformation.h
@@ -32,6 +32,8 @@ add_executable(
         src/DefenseMultipliers.h
         src/TypeChartDataSource.h
         src/BattleResult.h
+        src/Cache.h
+        src/data_class/PokemonStateSubset.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

@@ -1,15 +1,14 @@
-#include "MyHandler.h"
-#include "Timer.h"
-#include "BattleField.h"
+#include "BattleSimulator.h"
 
-
+// TODO The all_pokemon.json file should be loaded into static classes
 
 int main() {
-    BattleField battleField;
+    BattleSimulator battleSimulator;
     // Things that go into the lambda must have scope that lasts as long as the method battleTime
+    // battleTime opens several threads and runs lambdas on them for some time.
     logFunctionTime(
-            [&battleField] {
-                battleField.battleTime();
+            [&battleSimulator] {
+                battleSimulator.battleTime();
                 return "";
             },
             "Program run time: "

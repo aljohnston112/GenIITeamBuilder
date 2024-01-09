@@ -80,8 +80,8 @@ private:
         );
     }
 
-    static Attack getAttack(
-            auto &attack
+    static Attack getAttack (
+            const auto &attack
     ) {
         return Attack(
                 attack["name"].GetString(),
@@ -96,7 +96,7 @@ private:
     static void addAttacks(
             int level,
             const auto &attackArray,
-            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+            const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         for (auto &attack: attackArray) {
             (*attacks)[level].emplace_back(getAttack(attack));
@@ -105,7 +105,7 @@ private:
 
     static void extractGenIIAttacks(
             const auto &genIIAttacks,
-            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+            const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         for (auto &m: genIIAttacks.GetObject()) {
             int level = std::stoi(m.name.GetString());
@@ -116,7 +116,7 @@ private:
 
     static void extractAttacksFromList(
             const auto &attackList,
-            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+            const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         if (attackList.IsArray()) {
             for (auto &m: attackList.GetArray()) {
@@ -133,7 +133,7 @@ private:
 
     static void extractTmHmAttacks(
             const auto &tmHmAttacks,
-            std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+            const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) {
         if (tmHmAttacks.IsObject()) {
             for (auto &m: tmHmAttacks.GetObject()) {
@@ -148,10 +148,10 @@ private:
     }
 
     static Pokemon extractPokemon(const auto &pokemon) {
-        PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
-        AllStats allStats = extractAllStats(pokemon["all_stats"]);
+        const PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
+        const AllStats allStats = extractAllStats(pokemon["all_stats"]);
 
-        auto attacks = std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
+        const auto attacks = std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
         extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
         extractAttacksFromList(pokemon["genI_attacks"], attacks);
         extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
@@ -160,10 +160,14 @@ private:
         extractAttacksFromList(pokemon["pre_evolution_attacks"], attacks);
         extractAttacksFromList(pokemon["special_attacks"], attacks);
 
+        for (auto& pair : *attacks) {
+            pair.second = std::move(std::as_const(pair.second));
+        }
+
         return {
                 pokemonInformation,
                 allStats,
-                attacks
+                static_cast<const std::shared_ptr<std::unordered_map<const int, const std::vector<Attack>>>>(attacks)
         };
     }
 

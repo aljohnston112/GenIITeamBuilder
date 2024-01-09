@@ -4,92 +4,111 @@
 
 #include <algorithm>
 #include "StatModifiers.h"
+#include "Stat.h"
+#include "PokemonStateSubset.h"
 
 class PokemonState {
-private:
-    const Pokemon pokemon;
-    double attackStat;
-    double defenseStat;
-    double specialAttack;
-    double specialDefense;
-    double speed;
-    double maxHp;
-    double currentHp;
-
 public:
     const bool buffed;
+    const Pokemon pokemon;
+    const double attackStat;
+    const double defenseStat;
+    const double specialAttack;
+    const double specialDefense;
+    const double speed;
+    const double maxHp;
+    const double currentHp;
 
     PokemonState(
-            const Pokemon& pokemon,
-            const StatModifiers &stat_modifiers,
-            const bool buffed,
-            const bool minStats
-    ) : pokemon(pokemon), buffed(buffed) {
-        if (minStats) {
-            currentHp = pokemon.allStats.level_50_min_stats.health;
-            maxHp = pokemon.allStats.level_50_min_stats.health;
-            attackStat = pokemon.allStats.level_50_min_stats.attack * stat_modifiers.attackModifier;
-            defenseStat = pokemon.allStats.level_50_min_stats.defense * stat_modifiers.defenseModifier;
-            specialAttack = pokemon.allStats.level_50_min_stats.special_attack * stat_modifiers.specialAttackModifier;
-            specialDefense = pokemon.allStats.level_50_min_stats.special_defense * stat_modifiers.specialDefenseModifier;
-            speed = pokemon.allStats.level_50_min_stats.speed * stat_modifiers.speedModifier;
-        } else {
-            currentHp = pokemon.allStats.level_50_max_stats.health;
-            maxHp = pokemon.allStats.level_50_max_stats.health;
-            attackStat = pokemon.allStats.level_50_max_stats.attack * stat_modifiers.attackModifier;
-            defenseStat = pokemon.allStats.level_50_max_stats.defense * stat_modifiers.defenseModifier;
-            specialAttack = pokemon.allStats.level_50_max_stats.special_attack * stat_modifiers.specialAttackModifier;
-            specialDefense = pokemon.allStats.level_50_max_stats.special_defense * stat_modifiers.specialDefenseModifier;
-            speed = pokemon.allStats.level_50_max_stats.speed * stat_modifiers.speedModifier;
-        }
+            const PokemonStateSubset &pokemonStateSubset,
+            const bool buffed
+    ) : pokemon(pokemonStateSubset.pokemon),
+        buffed(buffed),
+        currentHp(pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.health
+                                              : pokemonStateSubset.pokemon.allStats.level_50_max_stats.health),
+        maxHp(pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.health
+                                          : pokemonStateSubset.pokemon.allStats.level_50_max_stats.health),
+        attackStat((pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.attack
+                                                : pokemonStateSubset.pokemon.allStats.level_50_max_stats.attack) *
+                   pokemonStateSubset.statModifiers.attackModifier),
+        defenseStat((pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.defense
+                                                 : pokemonStateSubset.pokemon.allStats.level_50_max_stats.defense) *
+                    pokemonStateSubset.statModifiers.defenseModifier),
+        specialAttack(
+                (pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.special_attack
+                                             : pokemonStateSubset.pokemon.allStats.level_50_max_stats.special_attack) *
+                pokemonStateSubset.statModifiers.specialAttackModifier),
+        specialDefense(
+                (pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.special_defense
+                                             : pokemonStateSubset.pokemon.allStats.level_50_max_stats.special_defense) *
+                pokemonStateSubset.statModifiers.specialDefenseModifier),
+        speed((pokemonStateSubset.minStats ? pokemonStateSubset.pokemon.allStats.level_50_min_stats.speed
+                                           : pokemonStateSubset.pokemon.allStats.level_50_max_stats.speed) *
+              pokemonStateSubset.statModifiers.speedModifier) {}
+
+    PokemonState(
+            const bool &buffed,
+            const Pokemon &pokemon,
+            const double &attackStat,
+            const double &defenseStat,
+            const double &specialAttack,
+            const double &specialDefense,
+            const double &speed,
+            const double &maxHp,
+            const double &currentHp
+    )
+            : buffed(buffed),
+              pokemon(pokemon),
+              attackStat(attackStat),
+              defenseStat(defenseStat),
+              specialAttack(specialAttack),
+              specialDefense(specialDefense),
+              speed(speed),
+              maxHp(maxHp),
+              currentHp(currentHp) {}
+
+    PokemonState addDamage(const double damage) {
+        return {
+                buffed,
+                pokemon,
+                attackStat,
+                defenseStat,
+                specialAttack,
+                specialDefense,
+                speed,
+                maxHp,
+                currentHp - damage
+        };
     }
 
-    [[nodiscard]] double getMaxHp() const {
-        return maxHp;
-    }
-    void addDamage(double damage) {
-        currentHp -= damage;
-    }
-
-    void addHealth(double health) {
-        currentHp += health;
-        currentHp = std::min(currentHp, maxHp);
-    }
-
-    void restore() {
-        currentHp = maxHp;
-    }
-
-    [[nodiscard]] bool isBuffed() const {
-        return buffed;
+    PokemonState addHealth(const double health) {
+        auto hp = currentHp + health;
+        hp = std::min(currentHp, maxHp);
+        return {
+                buffed,
+                pokemon,
+                attackStat,
+                defenseStat,
+                specialAttack,
+                specialDefense,
+                speed,
+                maxHp,
+                hp
+        };
     }
 
-    [[nodiscard]] double getAttackStat() const {
-        return attackStat;
-    }
-
-    [[nodiscard]] double getDefenseStat() const {
-        return defenseStat;
-    }
-
-    [[nodiscard]] double getSpecialAttack() const {
-        return specialAttack;
-    }
-
-    [[nodiscard]] double getSpecialDefense() const {
-        return specialDefense;
-    }
-
-    [[nodiscard]] double getSpeed() const {
-        return speed;
-    }
-
-    [[nodiscard]] const Pokemon& getPokemon() const {
-        return pokemon;
-    }
-
-    [[nodiscard]] double getCurrentHP() const{
-        return currentHp;
+    PokemonState restore() {
+        return {
+                buffed,
+                pokemon,
+                attackStat,
+                defenseStat,
+                specialAttack,
+                specialDefense,
+                speed,
+                maxHp,
+                maxHp
+        };
     }
 
 };

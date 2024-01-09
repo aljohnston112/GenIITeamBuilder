@@ -1,5 +1,5 @@
-#ifndef GENIITEAMBUILDER_BATTLEFIELD_H
-#define GENIITEAMBUILDER_BATTLEFIELD_H
+#ifndef GENIITEAMBUILDER_BATTLESIMULATOR_H
+#define GENIITEAMBUILDER_BATTLESIMULATOR_H
 
 #include <string>
 #include <future>
@@ -23,7 +23,7 @@ namespace battle_field {
 
 }
 
-class BattleField {
+class BattleSimulator {
 
 private:
     ThreadPool threadPool;
@@ -33,8 +33,8 @@ private:
     std::vector<std::shared_ptr<std::promise<BattleResult>>> battlePromises;
 
     // Caching the PokemonStates only saved about 20ms.
-    std::unordered_map<std::string, shared_ptr<PokemonState>> defenderPokemonStates;
-    std::unordered_map<std::string, shared_ptr<PokemonState>> attackerPokemonStates;
+    std::unordered_map<std::string, std::shared_ptr<PokemonState>> defenderPokemonStates;
+    std::unordered_map<std::string, std::shared_ptr<PokemonState>> attackerPokemonStates;
     DamageCalculator damageCalculator;
     std::shared_ptr<std::unordered_map<std::string, std::unordered_map<std::string, std::vector<std::string>>>> attackerToMoveToPokemonDefeated =
             std::make_shared<std::unordered_map<std::string, std::unordered_map<std::string, std::vector<std::string>>>>();
@@ -125,7 +125,7 @@ private:
 
     }
 
-    shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers &statModifiers) {
+    std::shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers &statModifiers) {
         if (defenderPokemonStates.find(pokemon.pokemonInformation.name) == defenderPokemonStates.end()) {
             defenderPokemonStates.insert(
                     {
@@ -274,4 +274,4 @@ public:
 
 };
 
-#endif //GENIITEAMBUILDER_BATTLEFIELD_H
+#endif //GENIITEAMBUILDER_BATTLESIMULATOR_H
