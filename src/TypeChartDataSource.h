@@ -31,31 +31,43 @@ static std::stringstream readDefenderTypesFile() {
     return buffer;
 }
 
-std::vector<TypeChart> getDefendTypeDict() {
-    rapidjson::Document document;
-    std::string allPokemonJSON = readDefenderTypesFile().str();
-    rapidjson::StringStream buffer(allPokemonJSON.c_str());
-    document.ParseStream(buffer);
+class TypeChartDataSource {
+private:
+    std::shared_ptr<std::vector<TypeChart>> defendTypeChart = make_shared<std::vector<TypeChart>>();
+    std::mutex mutex;
 
-    std::vector<TypeChart> parsedData;
-    auto defaultMultiplier = [] { return std::vector<PokemonType>(); };
-    for (const auto &typeDict: document.GetArray()) {
-        TypeChart typeChart;
-        for (int i = 0; i < static_cast<int>(PokemonType::Count); ++i) {
-            auto enumValue = static_cast<PokemonType>(i);
-            typeChart[enumValue] = defaultMultiplier();
-        }
-        for (const auto &entry: typeDict.GetObject()) {
-            const auto key = convert_to_pokemon_type(entry.name.GetString());
-            std::vector<PokemonType> types;
-            for(const auto& type: entry.value.GetArray()){
-                types.emplace_back(convert_to_pokemon_type(type.GetString()));
+public:
+    std::shared_ptr<std::vector<TypeChart>> getDefendTypeDict() {
+        mutex.lock();
+        if (defendTypeChart->empty()) {
+            printf("Pokemon type file loaded\n");
+            rapidjson::Document document;
+            std::string allPokemonJSON = readDefenderTypesFile().str();
+            rapidjson::StringStream buffer(allPokemonJSON.c_str());
+            document.ParseStream(buffer);
+
+            auto defaultMultiplier = [] { return std::vector<PokemonType>(); };
+            for (const auto &typeDict: document.GetArray()) {
+                TypeChart typeChart;
+                for (int i = 0; i < static_cast<int>(PokemonType::Count); ++i) {
+                    auto enumValue = static_cast<PokemonType>(i);
+                    typeChart[enumValue] = defaultMultiplier();
+                }
+                for (const auto &entry: typeDict.GetObject()) {
+                    const auto key = convert_to_pokemon_type(entry.name.GetString());
+                    std::vector<PokemonType> types;
+                    for (const auto &type: entry.value.GetArray()) {
+                        types.emplace_back(convert_to_pokemon_type(type.GetString()));
+                    }
+                    typeChart[key] = types;
+                }
+                defendTypeChart->push_back(typeChart);
             }
-            typeChart[key] = types;
         }
-        parsedData.push_back(typeChart);
+        mutex.unlock();
+        return defendTypeChart;
     }
-    return parsedData;
-}
+
+};
 
 #endif //GENIITEAMBUILDER_TYPECHARTDATASOURCE_H

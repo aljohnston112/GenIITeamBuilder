@@ -31,12 +31,12 @@ public:
         accuracy(accuracy),
         effectPercent(effectPercent) {}
 
-    std::string getName() const { return name; }
-    PokemonType getPokemonType() const { return pokemonType; }
-    Category getCategory() const { return category; }
-    int getPower() const { return power; }
-    int getAccuracy() const { return accuracy; }
-    int getEffectPercent() const { return effectPercent; }
+    [[nodiscard]] const std::string& getName() const { return name; }
+    [[nodiscard]] const PokemonType& getPokemonType() const { return pokemonType; }
+    [[nodiscard]] const Category& getCategory() const { return category; }
+    [[nodiscard]] const int& getPower() const { return power; }
+    [[nodiscard]] const int& getAccuracy() const { return accuracy; }
+    [[nodiscard]] const int& getEffectPercent() const { return effectPercent; }
 
 };
 

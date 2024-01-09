@@ -31,6 +31,7 @@ add_executable(
         src/AttackUtil.h
         src/DefenseMultipliers.h
         src/TypeChartDataSource.h
+        src/BattleResult.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

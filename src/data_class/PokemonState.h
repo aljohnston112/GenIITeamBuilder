@@ -7,6 +7,7 @@
 
 class PokemonState {
 private:
+    const Pokemon pokemon;
     double attackStat;
     double defenseStat;
     double specialAttack;
@@ -16,15 +17,14 @@ private:
     double currentHp;
 
 public:
-    const Pokemon pokemon;
     const bool buffed;
 
     PokemonState(
-            Pokemon& pokemon,
-            StatModifiers &stat_modifiers,
-            bool buffed,
-            bool minStats
-    ) : pokemon(std::move(pokemon)), buffed(buffed) {
+            const Pokemon& pokemon,
+            const StatModifiers &stat_modifiers,
+            const bool buffed,
+            const bool minStats
+    ) : pokemon(pokemon), buffed(buffed) {
         if (minStats) {
             currentHp = pokemon.allStats.level_50_min_stats.health;
             maxHp = pokemon.allStats.level_50_min_stats.health;
@@ -44,14 +44,14 @@ public:
         }
     }
 
-    double get_max_hp() const {
+    [[nodiscard]] double getMaxHp() const {
         return maxHp;
     }
-    void add_damage(double damage) {
+    void addDamage(double damage) {
         currentHp -= damage;
     }
 
-    void add_health(double health) {
+    void addHealth(double health) {
         currentHp += health;
         currentHp = std::min(currentHp, maxHp);
     }
@@ -60,32 +60,36 @@ public:
         currentHp = maxHp;
     }
 
-    bool isBuffed() const {
+    [[nodiscard]] bool isBuffed() const {
         return buffed;
     }
 
-    double getAttackStat() const {
+    [[nodiscard]] double getAttackStat() const {
         return attackStat;
     }
 
-    double getDefenseStat() const {
+    [[nodiscard]] double getDefenseStat() const {
         return defenseStat;
     }
 
-    double getSpecialAttack() const {
+    [[nodiscard]] double getSpecialAttack() const {
         return specialAttack;
     }
 
-    double getSpecialDefense() const {
+    [[nodiscard]] double getSpecialDefense() const {
         return specialDefense;
     }
 
-    double getSpeed() const {
+    [[nodiscard]] double getSpeed() const {
         return speed;
     }
 
-    Pokemon getPokemon(){
+    [[nodiscard]] const Pokemon& getPokemon() const {
         return pokemon;
+    }
+
+    [[nodiscard]] double getCurrentHP() const{
+        return currentHp;
     }
 
 };
