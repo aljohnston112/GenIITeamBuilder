@@ -17,6 +17,7 @@ public:
     ) : pokemon(pokemon),
         statModifiers(stat_modifiers),
         minStats(minStats) {}
+
 };
 
 #endif //GENIITEAMBUILDER_POKEMONSTATESUBSET_H

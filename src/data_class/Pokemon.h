@@ -11,12 +11,12 @@ class Pokemon {
 public:
     const PokemonInformation pokemonInformation;
     const AllStats allStats;
-    const std::shared_ptr<std::unordered_map<const int, const std::vector<Attack>>> attacks;
+    const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> attacks;
 
     Pokemon(
             const PokemonInformation &pokemon_info,
             const AllStats &all_stats,
-            const std::shared_ptr<std::unordered_map<const int, const std::vector<Attack>>> &attacks
+            const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
     ) :
             pokemonInformation(pokemon_info),
             allStats(all_stats),

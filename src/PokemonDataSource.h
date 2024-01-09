@@ -160,14 +160,10 @@ private:
         extractAttacksFromList(pokemon["pre_evolution_attacks"], attacks);
         extractAttacksFromList(pokemon["special_attacks"], attacks);
 
-        for (auto& pair : *attacks) {
-            pair.second = std::move(std::as_const(pair.second));
-        }
-
         return {
                 pokemonInformation,
                 allStats,
-                static_cast<const std::shared_ptr<std::unordered_map<const int, const std::vector<Attack>>>>(attacks)
+                attacks
         };
     }
 

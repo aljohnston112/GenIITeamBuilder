@@ -33,7 +33,7 @@ static std::stringstream readDefenderTypesFile() {
 
 class TypeChartDataSource {
 private:
-    std::shared_ptr<std::vector<TypeChart>> defendTypeChart = make_shared<std::vector<TypeChart>>();
+    std::shared_ptr<std::vector<TypeChart>> defendTypeChart = std::make_shared<std::vector<TypeChart>>();
     std::mutex mutex;
 
 public:

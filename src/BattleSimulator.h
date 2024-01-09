@@ -41,109 +41,98 @@ private:
     std::shared_ptr<std::unordered_map<std::string, int>> pokemonToTimesDefeated = std::make_shared<std::unordered_map<std::string, int>>();
 
     void battle(
-            const std::shared_ptr<PokemonState> &attacker,
-            const std::shared_ptr<PokemonState> &defender,
+            std::shared_ptr<PokemonState> attacker,
+            std::shared_ptr<PokemonState> defender,
             std::promise<BattleResult> &promise
     ) {
         bool attackerBuffed = false;
         bool defenderBuffed = true;
-        auto [damageToDefender, defenderAttack] = damageCalculator.getMaxDamageAttackerCanDoToDefender(
+
+        auto [damageToDefender, attackerAttack] = damageCalculator.getMaxDamageAttackerCanDoToDefender(
                 attacker,
                 defender,
                 attackerBuffed,
                 battle_field::LEVEL
         );
-        auto [damageToAttacker, attackerAttack] = damageCalculator.getMaxDamageAttackerCanDoToDefender(
-                attacker,
+        auto [damageToAttacker, defenderAttack] = damageCalculator.getMaxDamageAttackerCanDoToDefender(
                 defender,
+                attacker,
                 defenderBuffed,
                 battle_field::LEVEL
         );
-        double defenderSpeedStat = defender->getSpeed();
-        double attackerSpeedStat = attacker->getSpeed();
+        double defenderSpeedStat = defender->speed;
+        double attackerSpeedStat = attacker->speed;
         bool attackerFirst = attackerSpeedStat > defenderSpeedStat;
 
         BattleResult battleResult;
         if (damageToAttacker == 0 && damageToDefender == 0) {
-            attacker->addDamage(attacker->getMaxHp());
+            attacker = std::make_shared<PokemonState>(attacker->afterAddingDamage(attacker->maxHp));
         } else {
-            while (attacker->getCurrentHP() > 0 && defender->getCurrentHP() > 0) {
-                attacker->addDamage(damageToAttacker);
-                defender->addDamage(damageToDefender);
+            int i = 0;
+            while (attacker->currentHp > 0 && defender->currentHp > 0) {
+                attacker = std::make_shared<PokemonState>(attacker->afterAddingDamage(damageToAttacker));
+                defender = std::make_shared<PokemonState>(defender->afterAddingDamage(damageToDefender));
 
-                if (attackerAttack->getName() == "Giga Drain" &&
-                    ((attackerFirst && defender->getCurrentHP() > 0) || !attackerFirst)) {
-                    double gainedHealth = static_cast<double>(damageToDefender) / 2.0;
-                    if (attacker->getCurrentHP() < 0) {
-                        gainedHealth += damageToAttacker + attacker->getCurrentHP();
+                if (attackerAttack) {
+                    if (attackerAttack->name == "Giga Drain" &&
+                        ((attackerFirst && defender->currentHp > 0) || !attackerFirst)) {
+                        double gainedHealth = static_cast<double>(damageToDefender) / 2.0;
+                        attacker = std::make_shared<PokemonState>(attacker->afterAddingHealth(gainedHealth));
                     }
-                    attacker->addHealth(gainedHealth);
-                }
 
-                if (attackerAttack->getName() == "Double-Edge") {
-                    defender->addDamage(ceil(static_cast<double>(damageToDefender) / 4.0));
-                }
-
-                if (defenderAttack->getName() == "Giga Drain" &&
-                    ((!attackerFirst && attacker->getCurrentHP() > 0) || attackerFirst)) {
-                    double gainedHealth = static_cast<double>(damageToAttacker) / 2.0;
-                    if (defender->getCurrentHP() < 0) {
-                        gainedHealth += damageToDefender + defender->getCurrentHP();
-                    }
-                    defender->addHealth(gainedHealth);
-
-                    if (defenderAttack->getName() == "Double-Edge") {
-                        defender->addDamage(ceil(static_cast<double>(damageToDefender) / 4.0));
+                    if (attackerAttack->name == "Double-Edge") {
+                        defender = std::make_shared<PokemonState>(
+                                defender->afterAddingDamage(ceil(static_cast<double>(damageToDefender) / 4.0))
+                        );
                     }
                 }
 
-                std::tie(damageToDefender, defenderAttack) = damageCalculator.getMaxDamageAttackerCanDoToDefender(
+                if (defenderAttack) {
+                    if (defenderAttack->name == "Giga Drain" &&
+                        ((!attackerFirst && attacker->currentHp > 0) || attackerFirst)) {
+                        double gainedHealth = static_cast<double>(damageToAttacker) / 2.0;
+                        defender = std::make_shared<PokemonState>(defender->afterAddingHealth(gainedHealth));
+
+                        if (defenderAttack->name == "Double-Edge") {
+                            defender = std::make_shared<PokemonState>(
+                                    defender->afterAddingDamage(ceil(static_cast<double>(damageToDefender) / 4.0))
+                            );
+                        }
+                    }
+                }
+
+                std::tie(damageToDefender, attackerAttack) = damageCalculator.getMaxDamageAttackerCanDoToDefender(
                         attacker,
                         defender,
+                        attackerBuffed,
                         battle_field::LEVEL
                 );
 
-                std::tie(damageToAttacker, attackerAttack) = damageCalculator.getMaxDamageAttackerCanDoToDefender(
+                std::tie(damageToAttacker, defenderAttack) = damageCalculator.getMaxDamageAttackerCanDoToDefender(
                         defender,
                         attacker,
+                        defenderBuffed,
                         battle_field::LEVEL
                 );
+                if(i > 100){
+                    printf("");
+                }
+                i++;
             }
 
-            if (attacker->getCurrentHP() > 0 ||
-                (attacker->getCurrentHP() <= 0 && defender->getCurrentHP() <= 0 && attackerFirst)
+            if (attacker->currentHp > 0 ||
+                (attacker->currentHp <= 0 && defender->currentHp <= 0 && attackerFirst)
                     ) {
                 battleResult = BattleResult(
-                        attacker->getPokemon().pokemonInformation.name,
-                        attackerAttack->getName(),
-                        defender->getPokemon().pokemonInformation.name
+                        attacker->pokemon.pokemonInformation.name,
+                        attackerAttack->name,
+                        defender->pokemon.pokemonInformation.name
                 );
             }
         }
         // TODO Battle logic
         promise.set_value(battleResult);
 
-    }
-
-    std::shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers &statModifiers) {
-        if (defenderPokemonStates.find(pokemon.pokemonInformation.name) == defenderPokemonStates.end()) {
-            defenderPokemonStates.insert(
-                    {
-                            pokemon.pokemonInformation.name,
-                            std::make_shared<PokemonState>(
-                                    PokemonState(
-                                            pokemon,
-                                            statModifiers,
-                                            true,
-                                            false
-                                    )
-                            )
-                    }
-            );
-        }
-        auto state = defenderPokemonStates.at(pokemon.pokemonInformation.name);
-        state->restore();
-        return state;
     }
 
     std::shared_ptr<PokemonState> getAttackerPokemonState(Pokemon &pokemon, StatModifiers &statModifiers) {
@@ -153,17 +142,42 @@ private:
                             pokemon.pokemonInformation.name,
                             std::make_shared<PokemonState>(
                                     PokemonState(
-                                            pokemon,
-                                            statModifiers,
-                                            false,
+                                            PokemonStateSubset(
+                                                    pokemon,
+                                                    statModifiers,
+                                                    true
+                                            ),
+                                            false
+                                    )
+                            )
+                    }
+            );
+        }
+        std::shared_ptr<PokemonState> state = attackerPokemonStates.at(pokemon.pokemonInformation.name);
+        state = std::make_shared<PokemonState>(state->afterRestoring());
+        return state;
+    }
+
+    std::shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers &statModifiers) {
+        if (defenderPokemonStates.find(pokemon.pokemonInformation.name) == defenderPokemonStates.end()) {
+            defenderPokemonStates.insert(
+                    {
+                            pokemon.pokemonInformation.name,
+                            std::make_shared<PokemonState>(
+                                    PokemonState(
+                                            PokemonStateSubset(
+                                                    pokemon,
+                                                    statModifiers,
+                                                    false
+                                            ),
                                             true
                                     )
                             )
                     }
             );
         }
-        auto state = attackerPokemonStates.at(pokemon.pokemonInformation.name);
-        state->restore();
+        std::shared_ptr<PokemonState> state = defenderPokemonStates.at(pokemon.pokemonInformation.name);
+        state = std::make_shared<PokemonState>(state->afterRestoring());
         return state;
     }
 
@@ -199,13 +213,13 @@ public:
             logFunctionTime(
                     [this, &attackerStatModifiers, &defenderStatModifiers] {
                         for (Pokemon &attackingPokemon: ALL_POKEMON) {
-                            auto attackerState = getAttackerPokemonState(
+                            std::shared_ptr<PokemonState> attackerState = getAttackerPokemonState(
                                     attackingPokemon,
                                     attackerStatModifiers
                             );
 
                             for (Pokemon &defendingPokemon: ALL_POKEMON) {
-                                auto defenderState = getDefenderPokemonState(
+                                std::shared_ptr<PokemonState> defenderState = getDefenderPokemonState(
                                         defendingPokemon,
                                         defenderStatModifiers
                                 );
@@ -267,7 +281,7 @@ public:
                 }
                 bestAttackerMoves[move] /= numberOfPokemonDefeatedByAttacker;
             }
-            double rank = numberOfPokemonDefeatedByAttacker / battle_field::NUMBER_OF_POKEMON;
+            double rank = static_cast<double>(numberOfPokemonDefeatedByAttacker) / battle_field::NUMBER_OF_POKEMON;
             attackerRankToPokemon[rank].emplace_back(attackerName, bestAttackerMoves);
         }
     }

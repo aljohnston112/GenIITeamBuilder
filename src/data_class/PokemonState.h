@@ -67,7 +67,7 @@ public:
               maxHp(maxHp),
               currentHp(currentHp) {}
 
-    PokemonState addDamage(const double damage) {
+    const PokemonState afterAddingDamage(const double damage) {
         return {
                 buffed,
                 pokemon,
@@ -81,9 +81,9 @@ public:
         };
     }
 
-    PokemonState addHealth(const double health) {
+    const PokemonState afterAddingHealth(const double health) {
         auto hp = currentHp + health;
-        hp = std::min(currentHp, maxHp);
+        hp = std::min(hp, maxHp);
         return {
                 buffed,
                 pokemon,
@@ -97,7 +97,7 @@ public:
         };
     }
 
-    PokemonState restore() {
+    const PokemonState afterRestoring() {
         return {
                 buffed,
                 pokemon,
