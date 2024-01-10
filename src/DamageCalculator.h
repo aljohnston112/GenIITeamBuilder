@@ -10,7 +10,7 @@
 
 class DamageCalculator {
 
-    const std::unordered_map<std::string, int> buffedAttackPowers = {
+    const std::vector<std::pair<std::string, int>> buffedAttackPowers = {
             {"Present",                120},
             {"Reversal",               0},
             {"Magnitude",              150},
@@ -24,7 +24,7 @@ class DamageCalculator {
             {"Skull Bash",             65}
     };
 
-    const std::unordered_map<std::string, int> nonBuffedAttackPowers = {
+    const std::vector<std::pair<std::string, int>> nonBuffedAttackPowers = {
             {"Present",                0},
             {"Reversal",               0},
             {"Magnitude",              10},
@@ -54,14 +54,16 @@ class DamageCalculator {
         if (attackName == "Low Kick") {
             movePower = getLowKickPower(defender->pokemon.pokemonInformation.pounds);
         } else if (buff) {
-            auto it = buffedAttackPowers.find(attackName);
-            if (it != buffedAttackPowers.end()) {
-                movePower = it->second;
+            for (const auto& pair : buffedAttackPowers) {
+                if (pair.first == attackName) {
+                    movePower = pair.second;
+                }
             }
         } else if (!buff) {
-            auto it = nonBuffedAttackPowers.find(attackName);
-            if (it != nonBuffedAttackPowers.end()) {
-                movePower = it->second;
+            for (const auto& pair : nonBuffedAttackPowers) {
+                if (pair.first == attackName) {
+                    movePower = pair.second;
+                }
             }
         } else if (movePower == -1) {
             movePower = 0;
@@ -97,7 +99,7 @@ public:
         const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attackers_attacks = attacker.attacks;
 
         for (const auto &pair: *attackers_attacks) {
-            const auto& attacks = pair.second;
+            const auto &attacks = pair.second;
             for (auto &attack: attacks) {
                 if (attacker_buffed || attack.accuracy == 100) {
                     bool is_special = attack.category == Category::SPECIAL;

@@ -30,7 +30,6 @@ private:
     std::vector<BattleFunction> functions;
     std::vector<Pokemon> ALL_POKEMON = PokemonDataSource::getAllPokemon();
     std::vector<std::future<BattleResult>> battleFutures;
-    std::vector<std::shared_ptr<std::promise<BattleResult>>> battlePromises;
 
     // Caching the PokemonStates only saved about 20ms.
     std::unordered_map<std::string, std::shared_ptr<PokemonState>> defenderPokemonStates;
@@ -225,7 +224,6 @@ public:
                                 );
                                 auto battlePromise = std::make_shared<std::promise<BattleResult>>();
                                 battleFutures.emplace_back(battlePromise->get_future());
-                                battlePromises.emplace_back(battlePromise);
                                 functions.emplace_back(
                                         std::move(
                                                 [attackerState, defenderState, battlePromise, this] {

@@ -8,6 +8,7 @@
 #include "PokemonStateSubset.h"
 
 class PokemonState {
+
 public:
     const bool buffed;
     const Pokemon pokemon;
@@ -67,49 +68,11 @@ public:
               maxHp(maxHp),
               currentHp(currentHp) {}
 
-    const PokemonState afterAddingDamage(const double damage) {
-        return {
-                buffed,
-                pokemon,
-                attackStat,
-                defenseStat,
-                specialAttack,
-                specialDefense,
-                speed,
-                maxHp,
-                currentHp - damage
-        };
-    }
+    const PokemonState afterAddingDamage(const double damage);
 
-    const PokemonState afterAddingHealth(const double health) {
-        auto hp = currentHp + health;
-        hp = std::min(hp, maxHp);
-        return {
-                buffed,
-                pokemon,
-                attackStat,
-                defenseStat,
-                specialAttack,
-                specialDefense,
-                speed,
-                maxHp,
-                hp
-        };
-    }
+    const PokemonState afterAddingHealth(const double health);
 
-    const PokemonState afterRestoring() {
-        return {
-                buffed,
-                pokemon,
-                attackStat,
-                defenseStat,
-                specialAttack,
-                specialDefense,
-                speed,
-                maxHp,
-                maxHp
-        };
-    }
+    const PokemonState afterRestoring();
 
 };
 

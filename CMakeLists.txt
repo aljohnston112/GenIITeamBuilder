@@ -34,6 +34,8 @@ add_executable(
         src/BattleResult.h
         src/Cache.h
         src/data_class/PokemonStateSubset.h
+        src/data_class/PokemonState.cpp
+        src/data_class/Stat.cpp
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

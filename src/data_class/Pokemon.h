@@ -4,10 +4,10 @@
 #include "PokemonInformation.h"
 #include "AllStats.h"
 #include "Attack.h"
-
-// TODO Add const data structures for each pokemon; they can encapsulate this class
+#include <memory>
 
 class Pokemon {
+
 public:
     const PokemonInformation pokemonInformation;
     const AllStats allStats;

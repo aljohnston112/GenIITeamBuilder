@@ -3,7 +3,7 @@
 
 #include "BaseStats.h"
 
-class AllStats {
+struct AllStats {
 
 public:
     const BaseStats base_stats;
@@ -18,7 +18,7 @@ public:
             const Stats &level_50_max_stats,
             const Stats &level_100_min_stats,
             const Stats &level_100_max_stats
-    ) : base_stats((base_stats)),
+    ) : base_stats(base_stats),
         level_50_min_stats(level_50_min_stats),
         level_50_max_stats(level_50_max_stats),
         level_100_min_stats(level_100_min_stats),

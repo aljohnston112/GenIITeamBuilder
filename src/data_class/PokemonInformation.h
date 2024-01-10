@@ -4,6 +4,7 @@
 #include "PokemonType.h"
 
 class PokemonInformation {
+
 public:
     const std::string name;
     const std::vector<PokemonType> pokemonTypes;
