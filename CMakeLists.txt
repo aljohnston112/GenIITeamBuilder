@@ -7,11 +7,9 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(
         ${PROJECT_NAME}
         src/main.cpp
-        src/MyHandler.h
         src/Timer.h
         src/data_class/PokemonType.h
         src/data_class/StatModifiers.h
-        src/data_class/Stat.h
         src/data_class/Category.h
         src/ThreadPool.h
         src/ThreadPool.cpp
@@ -20,7 +18,7 @@ add_executable(
         src/data_class/PokemonState.h
         src/PokemonDataSource.cpp
         src/data_class/PokemonInformation.h
-        src/PokemonType.cpp
+        src/data_class/PokemonType.cpp
         src/data_class/BaseStats.h
         src/data_class/Stats.h
         src/data_class/AllStats.h
@@ -31,11 +29,17 @@ add_executable(
         src/AttackUtil.h
         src/DefenseMultipliers.h
         src/TypeChartDataSource.h
-        src/BattleResult.h
-        src/Cache.h
+        src/data_class/BattleResult.h
+        src/ThreadSafeCache.h
         src/data_class/PokemonStateSubset.h
         src/data_class/PokemonState.cpp
-        src/data_class/Stat.cpp
+        src/BattleField.h
+        src/DamageCalculator.cpp
+        src/PokemonStateCache.h
+        src/TypeChartDataSource.cpp
+        src/DefenseMultipliers.cpp
+        src/BattleField.cpp
+        src/PokemonStateCache.cpp
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

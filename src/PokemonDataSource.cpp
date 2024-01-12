@@ -1,12 +1,14 @@
+#include <sstream>
+#include <fstream>
+#include <filesystem>
 #include "rapidjson/document.h"
 #include "PokemonDataSource.h"
 
 rapidjson::Document PokemonDataSource::document;
-std::vector<Pokemon> PokemonDataSource::ALL_POKEMON;
+std::vector<Pokemon> PokemonDataSource::allPokemon;
 
 std::stringstream PokemonDataSource::readAllPokemonFile() {
     std::stringstream buffer;
-    auto allPokemonFile = ALL_POKEMON_FILE;
     std::ifstream file(allPokemonFile);
     if (!file.is_open()) {
         throw std::filesystem::filesystem_error(
@@ -25,7 +27,7 @@ PokemonInformation PokemonDataSource::extractPokemonInformation(const auto &poke
     auto typeListJSON = pokemonInformation["pokemon_types"].GetArray();
     std::vector<PokemonType> types;
     for (auto &typeValue: typeListJSON) {
-        types.emplace_back(convert_to_pokemon_type(typeValue.GetString()));
+        types.emplace_back(convertToPokemonType(typeValue.GetString()));
     }
     return PokemonInformation(name, types, id, pounds);
 
@@ -67,7 +69,7 @@ Attack PokemonDataSource::getAttack (
 ) {
     return Attack(
             attack["name"].GetString(),
-            convert_to_pokemon_type(attack["pokemon_type"].GetString()),
+            convertToPokemonType(attack["pokemon_type"].GetString()),
             convertToAttackCategory(attack["category"].GetString()),
             attack["power"].GetInt(),
             attack["accuracy"].GetInt(),
@@ -78,16 +80,16 @@ Attack PokemonDataSource::getAttack (
 void PokemonDataSource::addAttacks(
         int level,
         const auto &attackArray,
-        const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+        std::unordered_map<int, std::vector<Attack>> &attacks
 ) {
     for (auto &attack: attackArray) {
-        (*attacks)[level].emplace_back(getAttack(attack));
+        (attacks)[level].emplace_back(getAttack(attack));
     }
 }
 
 void PokemonDataSource::extractGenIIAttacks(
         const auto &genIIAttacks,
-        const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+        std::unordered_map<int, std::vector<Attack>> &attacks
 ) {
     for (auto &m: genIIAttacks.GetObject()) {
         int level = std::stoi(m.name.GetString());
@@ -98,12 +100,12 @@ void PokemonDataSource::extractGenIIAttacks(
 
 void PokemonDataSource::extractAttacksFromList(
         const auto &attackList,
-        const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+        std::unordered_map<int, std::vector<Attack>> &attacks
 ) {
     if (attackList.IsArray()) {
         for (auto &m: attackList.GetArray()) {
             auto attackObject = m.GetObject();
-            (*attacks)[-2].emplace_back(getAttack(attackObject));
+            (attacks)[-2].emplace_back(getAttack(attackObject));
         }
     } else {
         if (attackList.GetType() != 0) {
@@ -115,12 +117,12 @@ void PokemonDataSource::extractAttacksFromList(
 
 void PokemonDataSource::extractTmHmAttacks(
         const auto &tmHmAttacks,
-        const std::shared_ptr<std::unordered_map<int, std::vector<Attack>>> &attacks
+        std::unordered_map<int, std::vector<Attack>> &attacks
 ) {
     if (tmHmAttacks.IsObject()) {
         for (auto &m: tmHmAttacks.GetObject()) {
             auto attackObject = m.value.GetObject();
-            (*attacks)[-1].emplace_back(getAttack(attackObject));
+            (attacks)[-1].emplace_back(getAttack(attackObject));
         }
     } else {
         if (tmHmAttacks.GetType() != 0) {
@@ -133,7 +135,7 @@ Pokemon PokemonDataSource::extractPokemon(const auto &pokemon) {
     const PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
     const AllStats allStats = extractAllStats(pokemon["all_stats"]);
 
-    const auto attacks = std::make_shared<std::unordered_map<int, std::vector<Attack>>>();
+    auto attacks = std::unordered_map<int, std::vector<Attack>>();
     extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
     extractAttacksFromList(pokemon["genI_attacks"], attacks);
     extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
@@ -150,24 +152,15 @@ Pokemon PokemonDataSource::extractPokemon(const auto &pokemon) {
 }
 
 std::vector<Pokemon> PokemonDataSource::getAllPokemon() {
-    if (ALL_POKEMON.empty()) {
+    if (allPokemon.empty()) {
         std::string allPokemonJSON = readAllPokemonFile().str();
-        StringStream buffer(allPokemonJSON.c_str());
+        rapidjson::StringStream buffer(allPokemonJSON.c_str());
         document.ParseStream(buffer);
         for (auto &m: document.GetObject()) {
-            ALL_POKEMON.emplace_back(
+            allPokemon.emplace_back(
                     extractPokemon(m.value.GetObject())
             );
         }
     }
-    return ALL_POKEMON;
-}
-
-std::vector<std::string> PokemonDataSource::getAllPokemonNames() {
-    std::vector<std::string> pokemonNames{};
-    pokemonNames.reserve(251);
-    for (auto &m: document.GetObject()) {
-        pokemonNames.emplace_back(m.name.GetString());
-    }
-    return pokemonNames;
+    return allPokemon;
 }

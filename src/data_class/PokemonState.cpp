@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "PokemonState.h"
 
 const PokemonState PokemonState::afterAddingDamage(const double damage) {

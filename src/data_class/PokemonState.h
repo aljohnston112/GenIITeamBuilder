@@ -1,10 +1,6 @@
 #ifndef GENIITEAMBUILDER_POKEMONSTATE_H
 #define GENIITEAMBUILDER_POKEMONSTATE_H
 
-
-#include <algorithm>
-#include "StatModifiers.h"
-#include "Stat.h"
 #include "PokemonStateSubset.h"
 
 class PokemonState {

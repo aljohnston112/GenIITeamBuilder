@@ -1,5 +1,5 @@
-#include <string>
-#include <utility>
+#ifndef GENIITEAMBUILDER_STATS_H
+#define GENIITEAMBUILDER_STATS_H
 
 class Stats {
 
@@ -27,3 +27,5 @@ public:
         speed(speed) {}
 
 };
+
+#endif //GENIITEAMBUILDER_STATS_H

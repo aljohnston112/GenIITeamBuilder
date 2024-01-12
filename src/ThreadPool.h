@@ -1,12 +1,10 @@
 #ifndef GENIITEAMBUILDER_THREADPOOL_H
 #define GENIITEAMBUILDER_THREADPOOL_H
 
-#include <thread>
-#include <vector>
-#include <queue>
 #include <functional>
-#include <future>
-#include "Timer.h"
+#include <thread>
+#include <queue>
+#include <condition_variable>
 
 namespace BattleConfig{
     using BattleFunction = std::function<void(void)>;
@@ -26,52 +24,11 @@ class ThreadPool {
     bool stop = false;
 
 public:
-    ThreadPool() {
-        for (size_t i = 0; i < numThreads; ++i) {
-            threads.emplace_back([this] {
-                while (true) {
-                    BattleFunction task;
-                    {
-                        std::unique_lock<std::mutex> lock(mutex);
-                        task_condition.wait(
-                                lock, [this] {
-                                    return stop || !tasks.empty();
-                                }
-                                );
+    ThreadPool();
 
-                        if (tasks.empty()) {
-                            return;
-                        }
+    void addTasks(const std::vector<BattleFunction>& functions);
 
-                        task = std::move(tasks.front());
-                        tasks.pop();
-                    }
-                    task();
-                }
-            });
-        }
-    };
-
-    void addTasks(const std::vector<BattleFunction>& functions){
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            for(const BattleFunction& function: functions) {
-                tasks.emplace(function);
-            }
-        }
-        task_condition.notify_one();
-    }
-
-    ~ThreadPool() {
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            stop = true;
-        }
-        task_condition.notify_all();
-        for (std::jthread &thread : threads) {
-            thread.join();
-        }
-    }
+    ~ThreadPool();
 
 };
 
