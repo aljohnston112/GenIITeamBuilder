@@ -49,7 +49,7 @@ private:
             std::unordered_map<int, std::vector<Attack>> &attacks
     );
 
-    static Pokemon extractPokemon(const auto &pokemon);
+    static std::optional<Pokemon> extractPokemon(const auto &pokemon);
 
 public:
 

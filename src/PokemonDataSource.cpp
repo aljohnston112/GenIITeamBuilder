@@ -1,8 +1,10 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
+#include <optional>
 #include "rapidjson/document.h"
 #include "PokemonDataSource.h"
+#include <algorithm>
 
 rapidjson::Document PokemonDataSource::document;
 std::vector<Pokemon> PokemonDataSource::allPokemon;
@@ -64,7 +66,7 @@ AllStats PokemonDataSource::extractAllStats(const auto &allStats) {
     );
 }
 
-Attack PokemonDataSource::getAttack (
+Attack PokemonDataSource::getAttack(
         const auto &attack
 ) {
     return Attack(
@@ -131,24 +133,44 @@ void PokemonDataSource::extractTmHmAttacks(
     }
 }
 
-Pokemon PokemonDataSource::extractPokemon(const auto &pokemon) {
+std::optional<Pokemon> PokemonDataSource::extractPokemon(const auto &pokemon) {
     const PokemonInformation pokemonInformation = extractPokemonInformation(pokemon["pokemon_information"]);
-    const AllStats allStats = extractAllStats(pokemon["all_stats"]);
-
-    auto attacks = std::unordered_map<int, std::vector<Attack>>();
-    extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
-    extractAttacksFromList(pokemon["genI_attacks"], attacks);
-    extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
-    extractAttacksFromList(pokemon["move_tutor_attacks"], attacks);
-    extractAttacksFromList(pokemon["egg_moves"], attacks);
-    extractAttacksFromList(pokemon["pre_evolution_attacks"], attacks);
-    extractAttacksFromList(pokemon["special_attacks"], attacks);
-
-    return {
-            pokemonInformation,
-            allStats,
-            attacks
+    const std::vector<std::string> doNotInclude{
+            "Articuno",
+            "Zapdos",
+            "Moltres",
+            "Raikou",
+            "Entei",
+            "Suicune",
+            "Mewtwo",
+            "Lugia",
+            "Ho-Oh",
+            "Mew",
+            "Celebi",
+            "Dragonite",
+            "Tyranitar"
     };
+    std::optional<Pokemon> returnMe{};
+    if (std::find(doNotInclude.begin(), doNotInclude.end(), pokemonInformation.name) == doNotInclude.end()) {
+        const AllStats allStats = extractAllStats(pokemon["all_stats"]);
+
+        auto attacks = std::unordered_map<int, std::vector<Attack>>();
+        extractGenIIAttacks(pokemon["genII_level_to_attacks"], attacks);
+        extractAttacksFromList(pokemon["genI_attacks"], attacks);
+        extractTmHmAttacks(pokemon["tm_or_hm_to_attack"], attacks);
+        extractAttacksFromList(pokemon["move_tutor_attacks"], attacks);
+        extractAttacksFromList(pokemon["egg_moves"], attacks);
+        extractAttacksFromList(pokemon["pre_evolution_attacks"], attacks);
+        extractAttacksFromList(pokemon["special_attacks"], attacks);
+        returnMe.emplace(
+                Pokemon{
+                        pokemonInformation,
+                        allStats,
+                        attacks
+                }
+        );
+    }
+    return returnMe;
 }
 
 std::vector<Pokemon> PokemonDataSource::getAllPokemon() {
@@ -157,9 +179,12 @@ std::vector<Pokemon> PokemonDataSource::getAllPokemon() {
         rapidjson::StringStream buffer(allPokemonJSON.c_str());
         document.ParseStream(buffer);
         for (auto &m: document.GetObject()) {
-            allPokemon.emplace_back(
-                    extractPokemon(m.value.GetObject())
-            );
+            auto pokemon = extractPokemon(m.value.GetObject());
+            if(pokemon.has_value()) {
+                allPokemon.emplace_back(
+                    pokemon.value()
+                );
+            }
         }
     }
     return allPokemon;

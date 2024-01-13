@@ -41,3 +41,8 @@ std::shared_ptr<PokemonState> PokemonStateCache::getDefenderPokemonState(Pokemon
     state = std::make_shared<PokemonState>(state->afterRestoring());
     return state;
 }
+
+void PokemonStateCache::invalidate() {
+    attackerPokemonStates.clear();
+    defenderPokemonStates.clear();
+}

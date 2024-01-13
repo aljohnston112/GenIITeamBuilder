@@ -12,11 +12,17 @@
 #include "data_class/BattleResult.h"
 #include "BattleField.h"
 #include "Timer.h"
+#include "Combination.h"
 
 namespace battle_field {
     const std::vector<double> MULTIPLIERS = {
-            0.25
-            // , 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00
+            // 0.25
+            // , 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50,
+             3.00
+            // ,
+            // 3.50
+            //,
+            // 4.00
     };
     const int NUMBER_OF_POKEMON = 251;
     const size_t NUMBER_OF_BATTLES = NUMBER_OF_POKEMON * NUMBER_OF_POKEMON * MULTIPLIERS.size();
@@ -30,48 +36,25 @@ private:
 
 public:
 
-
-    static std::set<std::vector<std::string>> generateCombinations(
-            std::vector<std::string> &elements,
-            long length
+    static std::unordered_set<std::string>
+    getTopThreats(std::vector<std::string> potentialPokemon,
+                  const std::unordered_map<std::string, std::unordered_set<std::string>> pokemon_to_pokemon_lost_to
     ) {
-
-        std::sort(elements.begin(), elements.end());
-
-        std::set<std::vector<std::string>> result;
-        do {
-            std::vector<std::string> subset(elements.begin(), elements.begin() + length);
-            result.insert(subset);
-        } while (std::next_permutation(elements.begin(), elements.end()));
-
-        for (const auto &c: result) {
-            for (const auto &e: c) std::cout << e;
-            std::cout << '\n';
-        }
-
-        return result;
-    }
-
-    static void analyzeDefeats(
-            const std::unordered_map<std::string, std::unordered_set<std::string>> &pokemon_to_pokemon_lost_to
-    ) {
-        int min_overlaps = battle_field::NUMBER_OF_POKEMON;
-        std::unordered_set<std::string> top_threats;
-
-        std::vector<std::string> keys;
-        for (const auto &entry: pokemon_to_pokemon_lost_to) {
-            keys.push_back(entry.first);
-        }
 
         long combinationLength = 3;
-        std::set<std::vector<std::string>> combinations = generateCombinations(
-                keys, combinationLength
-        );
-
-        for (const auto &pokemon_combo: combinations) {
+        int min_overlaps = 999;
+        std::unordered_set<std::string> top_threats;
+        LexicographicalCombinationGenerator lexicographicalCombinationGenerator(potentialPokemon.size(),
+                                                                                combinationLength);
+        do {
+            auto indices = lexicographicalCombinationGenerator.getIndices();
+            auto combination = std::vector<std::string>();
+            for (auto index: indices) {
+                combination.push_back(potentialPokemon.at(index));
+            }
             std::unordered_set<std::string> seen;
             int overlaps = 0;
-            for (const auto &pokemon: pokemon_combo) {
+            for (const auto &pokemon: combination) {
                 for (const std::string &threat: pokemon_to_pokemon_lost_to.at(pokemon)) {
                     if (seen.find(threat) == seen.end()) {
                         seen.insert(threat);
@@ -84,20 +67,31 @@ public:
                 min_overlaps = overlaps;
 
                 std::cout << "Team: ";
-                for (const auto &elem: pokemon_combo) {
-                    std::cout << elem << " ";
+                for (const auto &elem: combination) {
+                    std::cout << elem << " " << std::endl;
                 }
-                std::cout << "\nWith threats:\n";
                 top_threats = seen;
-                for (const auto &threat: top_threats) {
-                    std::cout << "    " << threat << std::endl;
-                }
+//                std::cout << "\nWith threats:\n";
+//                for (const auto &threat: top_threats) {
+//                    std::cout << "    " << threat << std::endl;
+//                }
 
             }
+        } while (lexicographicalCombinationGenerator.increment());
+        return top_threats;
+    }
+
+    static void analyzeDefeats(
+            const std::unordered_map<std::string, std::unordered_set<std::string>> &pokemon_to_pokemon_lost_to
+    ) {
+
+        std::vector<std::string> keys;
+        for (const auto &entry: pokemon_to_pokemon_lost_to) {
+            keys.push_back(entry.first);
         }
 
+        auto top_threats = getTopThreats(keys, pokemon_to_pokemon_lost_to);
         std::unordered_map<std::string, int> pokemon_to_threat_count;
-
         for (const auto &defeated_pokemon: pokemon_to_pokemon_lost_to) {
             for (const auto &threat: top_threats) {
                 if (defeated_pokemon.second.find(threat) != defeated_pokemon.second.end()) {
@@ -106,7 +100,8 @@ public:
             }
         }
 
-        std::vector<std::pair<std::string, int>> pokemon_vector(pokemon_to_threat_count.begin(), pokemon_to_threat_count.end());
+        std::vector<std::pair<std::string, int>> pokemon_vector(pokemon_to_threat_count.begin(),
+                                                                pokemon_to_threat_count.end());
         std::sort(
                 pokemon_vector.begin(),
                 pokemon_vector.end(),
@@ -115,12 +110,63 @@ public:
                 }
         );
 
-        std::cout << "Top threat to the threat ranks:" << std::endl;
-        for (const auto &threat_count: pokemon_to_threat_count) {
-            std::cout << "    " << threat_count.first << ": " << threat_count.second << std::endl;
-        }
-    }
+        int maxThreatCount = std::max_element(
+                pokemon_to_threat_count.begin(),
+                pokemon_to_threat_count.end(),
+                [](const auto &p1, const auto &p2) {
+                    return p1.second < p2.second;
+                }
+        )->second;
 
+        std::vector<std::string> threatBeaters{};
+        std::cout << "Top threat to the threat ranks:" << std::endl;
+        for (const auto &pokemon_threat_count_pair: pokemon_to_threat_count) {
+            if (pokemon_threat_count_pair.second == maxThreatCount) {
+                std::cout << "    " << pokemon_threat_count_pair.first << std::endl;
+                threatBeaters.push_back(pokemon_threat_count_pair.first);
+            }
+        }
+
+        top_threats = getTopThreats(threatBeaters, pokemon_to_pokemon_lost_to);
+        pokemon_to_threat_count.clear();
+        for (const auto &defeated_pokemon: pokemon_to_pokemon_lost_to) {
+            for (const auto &threat: top_threats) {
+                if (defeated_pokemon.second.find(threat) != defeated_pokemon.second.end()) {
+                    pokemon_to_threat_count[threat] += 1;
+                }
+            }
+        }
+
+        pokemon_vector = std::vector<std::pair<std::string, int>>(
+                pokemon_to_threat_count.begin(),
+                pokemon_to_threat_count.end()
+        );
+        std::sort(
+                pokemon_vector.begin(),
+                pokemon_vector.end(),
+                [](const auto &lhs, const auto &rhs) {
+                    return lhs.second < rhs.second;
+                }
+        );
+
+        maxThreatCount = std::max_element(
+                pokemon_to_threat_count.begin(),
+                pokemon_to_threat_count.end(),
+                [](const auto &p1, const auto &p2) {
+                    return p1.second < p2.second;
+                }
+        )->second;
+
+        threatBeaters.clear();
+        std::cout << "Top threat to the threat ranks:" << std::endl;
+        for (const auto &pokemon_threat_count_pair: pokemon_to_threat_count) {
+            if (pokemon_threat_count_pair.second == maxThreatCount) {
+                std::cout << "    " << pokemon_threat_count_pair.first << std::endl;
+                threatBeaters.push_back(pokemon_threat_count_pair.first);
+            }
+        }
+
+    }
 
     static void saveThreatLists(
             const std::unordered_map<std::string, std::unordered_set<std::string>> &pokemon_to_pokemon_lost_to,
@@ -148,6 +194,7 @@ public:
         double defenderStatMultiplier = 4.00;
 
         for (double attackerStatMultiplier: battle_field::MULTIPLIERS) {
+            pokemonStateCache.invalidate();
             StatModifiers attackerStatModifiers(
                     attackerStatMultiplier,
                     attackerStatMultiplier,

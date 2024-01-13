@@ -33,6 +33,9 @@ public:
         return optional;
     }
 
+    void clear() {
+        cache.clear();
+    }
 };
 
 #endif //GENIITEAMBUILDER_THREADSAFECACHE_H

@@ -40,6 +40,7 @@ add_executable(
         src/DefenseMultipliers.cpp
         src/BattleField.cpp
         src/PokemonStateCache.cpp
+        src/Combination.h
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

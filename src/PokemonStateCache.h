@@ -16,6 +16,7 @@ public:
 
     std::shared_ptr<PokemonState> getDefenderPokemonState(Pokemon &pokemon, StatModifiers &statModifiers);
 
+    void invalidate();
 };
 
 #endif //GENIITEAMBUILDER_POKEMONSTATECACHE_H
